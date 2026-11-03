@@ -527,9 +527,10 @@ function sheetView() {
     <b>Andere eigenaar (${SYNC.setOwner.length})</b>${li(SYNC.setOwner.map((o) => `${esc(o.game)} → ${esc(o.owner)}${gameByName(o.game) ? "" : " <span class='pill warn'>niet gevonden</span>"}`))}
     <b>Nieuwe naam (${SYNC.rename.length})</b>${li(SYNC.rename.map((r) => `${esc(r.game)} → ${esc(r.to)}`))}
     <b>Notitie erbij (${SYNC.appendNote.length})</b>${li(SYNC.appendNote.map((n) => `${esc(n.game)}: ${esc(n.note.replace(/^ⓘ /, ""))}`))}
-    <b>Verwijderen (${SYNC.deleteGames.length})</b>${li(SYNC.deleteGames.map((n) => `${esc(n)}${gameByName(n) ? "" : " <span class='pill'>al weg</span>"}`))}
+    ${(SYNC.notInSheet || []).length ? `<b>Niet in de spreadsheet (${SYNC.notInSheet.length}) — blijven staan</b>${li(SYNC.notInSheet.map((n) => `${esc(n)}${gameByName(n) ? "" : " <span class='pill warn'>niet meer in de lijst</span>"}`))}` : ""}
     <b>♥ erbij (${SYNC.hearts.length} spellen)</b>${li(SYNC.hearts.map((h) => `${esc(h.game)}: ${esc(h.names.join(", "))}`))}
-    <p class="muted">♥'s komen alleen bij wie in de app aan zijn naam gekoppeld is. Spellen die al bestaan worden niet dubbel toegevoegd.</p>
+    <p class="muted">♥'s komen alleen bij wie in de app aan zijn naam gekoppeld is. Spellen die al bestaan worden niet dubbel toegevoegd. Er wordt nooit een spel verwijderd: wat niet in de spreadsheet staat, is in de app toegevoegd.</p>
+    ${(SYNC.restoreGames || []).some((g) => !gameByName(g.name)) ? `<button class="btn tonal" id="doRestore">Verdwenen spellen terugzetten (${SYNC.restoreGames.filter((g) => !gameByName(g.name)).length})</button> ` : ""}
     <button class="btn" id="doSync">${done ? "Nogmaals verwerken" : "Verwerken"}</button> <span class="muted" id="syncMsg"></span>
   </div>`;
 }
@@ -541,7 +542,7 @@ async function runSync() {
     const flush = async () => { if (n) { await b.commit(); b = writeBatch(db); n = 0; } };
     const put = async (r, d) => { b.set(r, d, { merge: true }); if (++n >= 400) await flush(); };
     const ids = new Map(S.games.map((g) => [normName(g.name), g.id]));
-    let added = 0, owners = 0, deleted = 0, hearts = 0;
+    let added = 0, owners = 0, hearts = 0;
     const missing = new Set();
     for (const g of SYNC.addGames) {
       if (ids.has(normName(g.name))) continue;
@@ -555,8 +556,7 @@ async function runSync() {
       if (g && !(g.notes || "").includes(x.note.replace(/^ⓘ /, ""))) await put(ref("games", g.id), { notes: g.notes ? `${g.notes} · ${x.note.replace(/^ⓘ /, "")}` : x.note });
     }
     await flush();
-    for (const name of SYNC.deleteGames) { const g = gameByName(name); if (g) { b.delete(ref("games", g.id)); n++; deleted++; ids.delete(normName(name)); } }
-    await flush();
+    // Spellen die niet in de spreadsheet staan, zijn in de app toegevoegd: nooit verwijderen
     const live = S.members.filter((m) => !m.web && !m.hidden);
     for (const h of SYNC.hearts) {
       const gid = ids.get(normName(h.game)); if (!gid) continue;
@@ -569,14 +569,29 @@ async function runSync() {
     }
     await put(doc(db, "events", S.eventId), { syncApplied: { [SYNC_FILE]: now() } });
     await flush();
-    $("#syncMsg").textContent = `Klaar: ${added} spellen toegevoegd, ${owners} eigenaars aangepast, ${deleted} verwijderd, ${hearts} ♥ gezet.` +
+    $("#syncMsg").textContent = `Klaar: ${added} spellen toegevoegd, ${owners} eigenaars aangepast, ${hearts} ♥ gezet. Niets verwijderd.` +
       (missing.size ? ` Niet in de app gekoppeld (geen ♥): ${[...missing].join(", ")}.` : "");
   } catch (e) { $("#syncMsg").textContent = "Mislukt: " + e.message; }
   btn.disabled = false;
 }
 
+// Zet spellen terug die een eerdere verwerking verwijderde (gegevens van de eerste vulling; ♥'s zijn niet terug te halen)
+async function runRestore() {
+  const btn = $("#doRestore"); btn.disabled = true;
+  try {
+    const b = writeBatch(db); let n = 0;
+    for (const g of SYNC.restoreGames || []) {
+      if (gameByName(g.name)) continue;
+      const { id, ...data } = g;
+      b.set(ref("games", id), { ...data, restoredAt: now() }, { merge: true }); n++;
+    }
+    await b.commit(); toast(`${n} spellen teruggezet`);
+  } catch (e) { toast("Mislukt: " + e.message); btn.disabled = false; }
+}
+
 function bind() {
   if ($("#doSync")) $("#doSync").onclick = runSync;
+  if ($("#doRestore")) $("#doRestore").onclick = runRestore;
   document.querySelectorAll("details[data-fold]").forEach((d) => d.ontoggle = () => { S.fold[d.dataset.fold] = d.open; });
   document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => { S.tab = b.dataset.tab; store.set("tab", S.tab); render(); });
   document.querySelectorAll("[data-new]").forEach((b) => b.onclick = () => openEditor(b.dataset.new, null));

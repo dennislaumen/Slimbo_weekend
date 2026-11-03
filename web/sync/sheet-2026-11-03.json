@@ -307,20 +307,6 @@
    "note": "ⓘ Ook Femke neemt een exemplaar mee"
   }
  ],
- "deleteGames": [
-  "Kronologic Groene Doos",
-  "Lost in the Woods",
-  "Pray another Day",
-  "Resafa",
-  "detective spelletje",
-  "-60°",
-  "Abroad",
-  "Merlin (evt met uitbreiding Morgana)",
-  "Navoria",
-  "Phoenix New Horizon",
-  "Rebirth",
-  "Queen Alice"
- ],
  "hearts": [
   {
    "game": "A wild venture",
@@ -448,6 +434,291 @@
    "names": [
     "Rebecca"
    ]
+  }
+ ],
+ "notInSheet": [
+  "Kronologic Groene Doos",
+  "Lost in the Woods",
+  "Pray another Day",
+  "Resafa",
+  "detective spelletje",
+  "-60°",
+  "Abroad",
+  "Merlin (evt met uitbreiding Morgana)",
+  "Navoria",
+  "Phoenix New Horizon",
+  "Rebirth",
+  "Queen Alice"
+ ],
+ "deleteGames": [],
+ "restoreGames": [
+  {
+   "id": "g-kronologic-groene-doos",
+   "name": "Kronologic Groene Doos",
+   "owner": "Amra",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Kronologic+Groene+Doos",
+   "video": "",
+   "interested": [],
+   "minPlayers": 1,
+   "maxPlayers": 4,
+   "durationMin": 30,
+   "weight": "LICHT",
+   "infoChecked": true,
+   "category": "Party",
+   "categories": [
+    "Expansion for Base-game",
+    "Deduction",
+    "Murder / Mystery",
+    "Puzzle"
+   ],
+   "notes": "ⓘ Aanname: gekoppeld aan Kronologic: Paris 1920 – Panic at the Opera & The Cursed Lovers"
+  },
+  {
+   "id": "g-lost-in-the-woods",
+   "name": "Lost in the Woods",
+   "owner": "Amra",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Lost+in+the+Woods",
+   "video": "",
+   "interested": [],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "infoChecked": false,
+   "category": "Familie",
+   "categories": [],
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-pray-another-day",
+   "name": "Pray another Day",
+   "owner": "Amra",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/boardgame/234260",
+   "video": "",
+   "interested": [],
+   "minPlayers": 2,
+   "maxPlayers": 5,
+   "durationMin": 20,
+   "weight": "LICHT",
+   "infoChecked": true,
+   "category": "Party",
+   "categories": [
+    "Animals",
+    "Bluffing",
+    "Card Game",
+    "Print & Play"
+   ],
+   "notes": "ⓘ BGG: Prey Another Day"
+  },
+  {
+   "id": "g-resafa",
+   "name": "Resafa",
+   "owner": "Manolis",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/boardgame/418858/resafa",
+   "video": "",
+   "interested": [
+    "Wilma"
+   ],
+   "minPlayers": 1,
+   "maxPlayers": 4,
+   "durationMin": 150,
+   "weight": "ZWAAR",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Ancient",
+    "Transportation",
+    "Travel"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "g-detective-spelletje",
+   "name": "detective spelletje",
+   "owner": "Rebecca",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=detective+spelletje",
+   "video": "",
+   "interested": [
+    "Amra",
+    "Femke",
+    "Amela"
+   ],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "infoChecked": false,
+   "category": "Coöperatief",
+   "categories": [],
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-60",
+   "name": "-60°",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=-60°",
+   "video": "",
+   "interested": [
+    "Amra",
+    "Moris",
+    "Baukje",
+    "Igor",
+    "Amela"
+   ],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "infoChecked": false,
+   "category": "Coöperatief",
+   "categories": [],
+   "notes": "ⓘ Wens: nog niemand neemt het mee · Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-abroad",
+   "name": "Abroad",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Abroad",
+   "video": "",
+   "interested": [
+    "Cindy"
+   ],
+   "minPlayers": 1,
+   "maxPlayers": 5,
+   "durationMin": 90,
+   "weight": "MIDDEL",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Travel"
+   ],
+   "notes": "ⓘ Wens: nog niemand neemt het mee"
+  },
+  {
+   "id": "g-merlin-evt-met-uitbreiding-morgana",
+   "name": "Merlin (evt met uitbreiding Morgana)",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/boardgame/230933/merlin",
+   "video": "",
+   "interested": [
+    "Wilma"
+   ],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 75,
+   "weight": "MIDDEL",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Medieval"
+   ],
+   "notes": "ⓘ Wens: nog niemand neemt het mee · Eventueel met uitbreiding Morgana"
+  },
+  {
+   "id": "g-navoria",
+   "name": "Navoria",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Navoria",
+   "video": "",
+   "interested": [
+    "Cindy"
+   ],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 80,
+   "weight": "MIDDEL",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Adventure",
+    "Exploration",
+    "Fantasy"
+   ],
+   "notes": "ⓘ Wens: nog niemand neemt het mee"
+  },
+  {
+   "id": "g-phoenix-new-horizon",
+   "name": "Phoenix New Horizon",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/boardgame/419704/phoenix-new-horizon",
+   "video": "",
+   "interested": [
+    "Wilma",
+    "Guillaume"
+   ],
+   "minPlayers": 1,
+   "maxPlayers": 4,
+   "durationMin": 120,
+   "weight": "ZWAAR",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Civilization",
+    "Industry / Manufacturing",
+    "Science Fiction"
+   ],
+   "notes": "ⓘ Wens: nog niemand neemt het mee"
+  },
+  {
+   "id": "g-rebirth",
+   "name": "Rebirth",
+   "owner": "",
+   "wishlist": true,
+   "link": "https://boardgamegeek.com/boardgame/417197/rebirth",
+   "video": "https://boardgamegeek.com/video/619699/rebirth/rebirth-gamenight-se14-ep08-how-to-play-and-playth",
+   "interested": [
+    "Amela",
+    "Cindy",
+    "Melissa"
+   ],
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "LICHT",
+   "infoChecked": true,
+   "category": "Familie",
+   "categories": [
+    "Environmental",
+    "Fantasy",
+    "Farming",
+    "Science Fiction",
+    "Territory Building"
+   ],
+   "notes": "ⓘ Wens: nog niemand neemt het mee"
+  },
+  {
+   "id": "g-queen-alice",
+   "name": "Queen Alice",
+   "owner": "Wesley",
+   "wishlist": false,
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Queen+Alice",
+   "video": "",
+   "interested": [
+    "Amra",
+    "Moris",
+    "Melissa",
+    "Mandy"
+   ],
+   "minPlayers": 1,
+   "maxPlayers": 4,
+   "durationMin": 120,
+   "weight": "ZWAAR",
+   "infoChecked": true,
+   "category": "Strategie",
+   "categories": [
+    "Novel-based"
+   ],
+   "notes": ""
   }
  ]
 }
