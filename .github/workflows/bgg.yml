@@ -1,0 +1,47 @@
+name: BGG bijwerken
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tools/bgg_sync.py"
+      - "tools/bgg_ids.json"
+      - ".github/workflows/bgg.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: bgg
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Spellen vergelijken met BoardGameGeek
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
+        run: python3 tools/bgg_sync.py
+
+      - name: Resultaat committen en website bijwerken
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/sync/bgg.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "BGG-vergelijking bijgewerkt"
+          git pull --rebase origin main
+          git push
+          gh workflow run pages.yml --ref main
