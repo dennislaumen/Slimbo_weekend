@@ -1,5 +1,5 @@
 {
- "_uitleg": "BGG-nummers voor spellen zonder link in het document. Het ophaalscript controleert de naam; bij twijfel wordt het nummer genegeerd.",
+ "_uitleg": "BGG-nummers voor spellen zonder BGG-link. Eén nummer = vast gekoppeld; een lijst = kandidaten, het script kiest het nummer waarvan de BGG-naam overeenkomt.",
  "Cat in a Box": "345972",
  "Curious Cargo": "312251",
  "High Rise Penguins": "296164",
@@ -41,5 +41,100 @@
  "Gibberesh": "27689",
  "Harmoni Cresendo": "414317",
  "Wat schets je me nou": "46213",
- "So Clover!": "329839"
+ "So Clover!": "329839",
+ "AI Space Puzzle": [
+  "383064"
+ ],
+ "Arborea": [
+  "371077",
+  "462661"
+ ],
+ "Cascadia alpine lakes": [
+  "446815"
+ ],
+ "Codenames critical role adventures": [
+  "465849"
+ ],
+ "Container": [
+  "5404",
+  "229892"
+ ],
+ "Endeavor deep sea": [
+  "367220",
+  "418470"
+ ],
+ "Fishing": [
+  "419195",
+  "398119",
+  "447825"
+ ],
+ "Food Chain Magnate": "175914",
+ "Fromage": [
+  "384213"
+ ],
+ "Great Western Trail Argentina": [
+  "364011",
+  "364073"
+ ],
+ "Love letter": [
+  "277085",
+  "129622"
+ ],
+ "Meadow + uitbreidingen": [
+  "314491"
+ ],
+ "March of the Ants": [
+  "159473",
+  "416079"
+ ],
+ "Night of the Ninja": [
+  "306321",
+  "389528"
+ ],
+ "Ohanami": [
+  "270314"
+ ],
+ "P.I.": [
+  "103885",
+  "463574"
+ ],
+ "Paint the Roses": [
+  "253759"
+ ],
+ "Pax Porfiriana (Second Edition)": [
+  "429962",
+  "128780"
+ ],
+ "Pina Coladice": [
+  "415054"
+ ],
+ "Sherlock 13": [
+  "149869"
+ ],
+ "Shipwreck Arcana": [
+  "237954"
+ ],
+ "Tend": [
+  "466553",
+  "427388"
+ ],
+ "Trailblazers": [
+  "370598"
+ ],
+ "Trio": [
+  "352515"
+ ],
+ "Wingspan Pocket": [
+  "473508"
+ ],
+ "Wonderland's War": [
+  "227935"
+ ],
+ "World Order + uitbreidingen": [
+  "403150",
+  "432708"
+ ],
+ "Similo Slimbo": [
+  "268620"
+ ]
 }

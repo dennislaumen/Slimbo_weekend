@@ -202,7 +202,7 @@ def names_match(a, b):
 
 
 def main():
-    manual = {k: str(v) for k, v in json.loads(IDS.read_text(encoding="utf-8")).items() if not k.startswith("_")}
+    manual = {k: (v if isinstance(v, list) else str(v)) for k, v in json.loads(IDS.read_text(encoding="utf-8")).items() if not k.startswith("_")}
     manual_norm = {norm(k): v for k, v in manual.items()}
     st = Store()
     event = st.find_event(JOIN_CODE)
@@ -215,14 +215,38 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("afmelden mislukt:", e, file=sys.stderr)
 
-    cache, result, unresolved, errors = {}, [], [], []
+    cache, result, unresolved, errors, rejected = {}, [], [], [], []
+
+    def info(bid):
+        if bid not in cache:
+            cache[bid] = thing(bid)
+            time.sleep(0.8)
+        return cache[bid]
+
     for g in sorted(games, key=lambda x: (x.get("name") or "").lower()):
         name = g.get("name") or ""
         m = re.search(r"/boardgame(?:expansion)?/(\d+)", g.get("link") or "")
         bid, source = (m.group(1), "link") if m else (None, "")
-        if not bid and (name in manual or norm(name) in manual_norm):
-            bid, source = manual.get(name) or manual_norm[norm(name)], "lijst"
         try:
+            if not bid:
+                entry = manual.get(name) or manual_norm.get(norm(name))
+                if isinstance(entry, str):
+                    bid, source = entry, "lijst"
+                elif entry:
+                    # Kandidaten: eerst exact dezelfde naam, anders een naam die erin voorkomt
+                    found = []
+                    for c in entry:
+                        try:
+                            found.append((c, info(c)["bggName"]))
+                        except Exception as e:  # noqa: BLE001
+                            found.append((c, f"fout {type(e).__name__}"))
+                    exact = [c for c, n in found if norm(n) == norm(name)]
+                    loose = [c for c, n in found if names_match(name, n)]
+                    pick = (exact or loose or [None])[0]
+                    if pick:
+                        bid, source = pick, "gezocht"
+                    else:
+                        rejected.append(f"{name}: " + ", ".join(f"{c} = {n}" for c, n in found))
             if not bid:
                 bid = search(name)
                 source = "zoeken" if bid else ""
@@ -230,10 +254,7 @@ def main():
             if not bid:
                 unresolved.append(name)
                 continue
-            if bid not in cache:
-                cache[bid] = thing(bid)
-                time.sleep(0.8)
-            b = cache[bid]
+            b = info(bid)
             current = {k: g.get(k) for k in ("minPlayers", "maxPlayers", "durationMin", "weight", "category", "categories", "link", "infoChecked")}
             result.append({"id": g["id"], "name": name, "source": source,
                            "nameMatch": names_match(name, b["bggName"]), "current": current, "bgg": b})
@@ -242,7 +263,7 @@ def main():
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"generated": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), "event": event,
-                               "total": len(games), "games": result, "unresolved": unresolved, "errors": errors,
+                               "total": len(games), "games": result, "unresolved": unresolved, "rejected": rejected, "errors": errors,
                                "tokenSet": bool(TOKEN)}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{len(result)} van {len(games)} spellen gekoppeld; {len(unresolved)} zonder BGG-nummer; {len(errors)} fouten")
 
