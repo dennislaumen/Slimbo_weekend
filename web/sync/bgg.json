@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-03 22:52 UTC",
+ "generated": "2026-11-03 22:56 UTC",
  "event": "d14PclMtaeM25doZi7i6",
  "total": 175,
  "games": [
@@ -3855,6 +3855,37 @@
    }
   },
   {
+   "id": "g-pina-coladice",
+   "name": "Pina Coladice",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Pina+Coladice",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "415054",
+    "bggName": "Piña Coladice",
+    "year": "2024",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 20,
+    "weight": "LICHT",
+    "averageWeight": 1.04,
+    "category": "Familie",
+    "categories": [
+     "Dice"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/415054"
+   }
+  },
+  {
    "id": "G3RfAhSk1uvWCjLr79mf",
    "name": "Potemkin Villages",
    "source": "link",
@@ -4695,21 +4726,24 @@
     "infoChecked": true
    },
    "bgg": {
-    "bggId": "237954",
-    "bggName": "The Shipwreck Arcana: Promo Pack",
-    "year": "2018",
+    "bggId": "220517",
+    "bggName": "The Shipwreck Arcana",
+    "year": "2017",
     "minPlayers": 2,
     "maxPlayers": 5,
     "durationMin": 30,
-    "weight": "LICHT",
-    "averageWeight": 2.0,
-    "category": "Coöperatief",
+    "weight": "MIDDEL",
+    "averageWeight": 2.21,
+    "category": "Strategie",
     "categories": [
-     "Expansion for Base-game",
      "Card Game",
-     "Deduction"
+     "Deduction",
+     "Fantasy",
+     "Math",
+     "Number",
+     "Print & Play"
     ],
-    "link": "https://boardgamegeek.com/boardgame/237954"
+    "link": "https://boardgamegeek.com/boardgame/220517"
    }
   },
   {
@@ -5389,22 +5423,22 @@
     "infoChecked": false
    },
    "bgg": {
-    "bggId": "370598",
-    "bggName": "Trailblazers: Travel Edition",
+    "bggId": "352454",
+    "bggName": "Trailblazers",
     "year": "2023",
     "minPlayers": 1,
-    "maxPlayers": 4,
+    "maxPlayers": 8,
     "durationMin": 30,
     "weight": "LICHT",
-    "averageWeight": 1.78,
+    "averageWeight": 1.79,
     "category": "Kaartspel",
     "categories": [
      "Adventure",
      "Animals",
      "Card Game",
-     "Print & Play"
+     "Puzzle"
     ],
-    "link": "https://boardgamegeek.com/boardgame/370598"
+    "link": "https://boardgamegeek.com/boardgame/352454"
    }
   },
   {
@@ -5926,12 +5960,9 @@
   "detective spelletje",
   "Lost in the Woods",
   "Meow Tiles",
-  "Pina Coladice",
   "Pokespan"
  ],
- "rejected": [
-  "Pina Coladice: 415054 = Piña Coladice"
- ],
+ "rejected": [],
  "errors": [],
  "tokenSet": false
 }
