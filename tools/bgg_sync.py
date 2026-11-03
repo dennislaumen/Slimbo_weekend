@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -191,7 +192,8 @@ def clean(name):
 
 
 def norm(s):
-    s = re.sub(r"\(.*?\)", "", (s or "").lower())
+    s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode()
+    s = re.sub(r"\(.*?\)", "", s.lower())
     s = re.sub(r"(second edition|deluxe edition|en uitbreiding.*|uitbreidingen?|\+.*)", "", s)
     return re.sub(r"[^a-z0-9]", "", s)
 

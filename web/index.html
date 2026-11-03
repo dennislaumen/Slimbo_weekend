@@ -453,7 +453,7 @@ function usersView() {
 
 const TABS = [
   ["users", "Gebruikers"], ["weekend", "Weekend"], ["activities", "Planning"], ["games", "Spellen"],
-  ["places", "Locaties"], ["tables", "Tafels"], ["rooms", "Kamers"], ["chores", "Corvee"], ["sheet", "Spreadsheet"],
+  ["places", "Locaties"], ["tables", "Tafels"], ["rooms", "Kamers"], ["chores", "Corvee"], ["sheet", "Spreadsheet"], ["bgg", "BGG"],
 ];
 
 function render() {
@@ -465,6 +465,7 @@ function render() {
   if (S.tab === "users") body = usersView();
   else if (S.tab === "weekend") body = weekendView();
   else if (S.tab === "sheet") body = sheetView();
+  else if (S.tab === "bgg") body = bggView();
   else if (S.tab === "games") body = listView("games", "Klik op een rij om te bewerken. Wijzigingen zijn direct zichtbaar in de app.");
   else body = listView(S.tab);
   $("#app").innerHTML = `<header>
@@ -586,7 +587,72 @@ async function runRestore() {
   } catch (e) { toast("Mislukt: " + e.message); btn.disabled = false; }
 }
 
+// ------------------------------------------------------------------ BoardGameGeek
+// sync/bgg.json wordt gemaakt door de GitHub-workflow "BGG bijwerken" (tools/bgg_sync.py)
+let BGG = null;
+fetch("sync/bgg.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((j) => { BGG = j; softRender(); }).catch(() => {});
+const BGG_FIELDS = [["players", "Spelers"], ["duration", "Duur"], ["weight", "Zwaarte"], ["category", "Lege categorie invullen"], ["categoryAll", "Bestaande categorie vervangen"], ["link", "BGG-link"]];
+S.bggOn = S.bggOn || { players: true, duration: true, weight: true, category: true, categoryAll: false, link: true };
+S.bggSkip = S.bggSkip || {};
+
+/** Wat er per spel zou veranderen (vergeleken met de actuele gegevens in de app). */
+function bggChanges(row) {
+  const g = S.games.find((x) => x.id === row.id); if (!g) return null;
+  const b = row.bgg, on = S.bggOn, upd = {}, txt = [];
+  const mn = b.minPlayers || g.minPlayers, mx = Math.max(mn, b.maxPlayers || g.maxPlayers);
+  if (on.players && (b.minPlayers || b.maxPlayers) && (mn !== g.minPlayers || mx !== g.maxPlayers)) {
+    upd.minPlayers = mn; upd.maxPlayers = mx; txt.push(`spelers ${g.minPlayers}–${g.maxPlayers} → ${mn}–${mx}`);
+  }
+  if (on.duration && b.durationMin && b.durationMin !== g.durationMin) { upd.durationMin = b.durationMin; txt.push(`duur ${g.durationMin} → ${b.durationMin} min`); }
+  if (on.weight && b.weight && b.weight !== g.weight) { upd.weight = b.weight; txt.push(`zwaarte ${label(WEIGHTS, g.weight) || "—"} → ${label(WEIGHTS, b.weight)} (${b.averageWeight})`); }
+  if (b.category && b.category !== g.category && (g.category ? on.categoryAll : on.category)) { upd.category = b.category; txt.push(`categorie ${g.category || "—"} → ${b.category}`); }
+  if (on.category && (b.categories || []).length && JSON.stringify(b.categories) !== JSON.stringify(g.categories || [])) upd.categories = b.categories;
+  if (on.link && !/\/boardgame(expansion)?\/\d+/.test(g.link || "")) { upd.link = b.link; txt.push("BGG-link"); }
+  if (Object.keys(upd).length && g.infoChecked === false) { upd.infoChecked = true; }
+  if (!txt.length && upd.categories) txt.push("BGG-categorieën");
+  return txt.length ? { g, upd, txt } : null;
+}
+
+function bggView() {
+  if (!BGG) return `<div class="card"><p class="muted">BGG-gegevens laden…</p></div>`;
+  const rows = BGG.games.map((r) => ({ r, c: bggChanges(r) })).filter((x) => x.c);
+  const checked = (r) => S.bggSkip[r.id] === undefined ? r.nameMatch : !S.bggSkip[r.id];
+  const n = rows.filter((x) => checked(x.r)).length;
+  const done = S.event?.bggApplied;
+  return `<div class="card">
+    <h3>Spellen bijwerken met BoardGameGeek</h3>
+    <p class="muted">Vergelijking van ${esc(BGG.generated)}: ${BGG.games.length} van ${BGG.total} spellen gekoppeld aan BGG. Hieronder staan alleen spellen waar BGG iets anders zegt dan de app.
+      Spellen waarvan de BGG-naam afwijkt staan standaard uit — controleer die even.</p>
+    ${done ? `<p class="pill ok">Laatst verwerkt op ${esc(new Date(done).toLocaleString("nl-NL"))}</p>` : ""}
+    <div style="margin:8px 0">${BGG_FIELDS.map(([k, l]) => `<label style="margin-right:14px"><input type="checkbox" data-bggfield="${k}" ${S.bggOn[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>
+    ${rows.length ? `<table><thead><tr><th><input type="checkbox" id="bggAll" ${n === rows.length ? "checked" : ""}></th><th>Spel</th><th>BGG</th><th>Wijziging</th></tr></thead><tbody>
+      ${rows.map(({ r, c }) => `<tr><td><input type="checkbox" data-bggrow="${esc(r.id)}" ${checked(r) ? "checked" : ""}></td>
+        <td>${esc(r.name)}</td>
+        <td><a href="${esc(r.bgg.link)}" target="_blank" rel="noopener">${esc(r.bgg.bggName)}</a>${r.bgg.year ? ` <span class="muted">(${esc(r.bgg.year)})</span>` : ""}${r.nameMatch ? "" : ` <span class="pill warn">andere naam</span>`}</td>
+        <td class="muted">${esc(c.txt.join(" · "))}</td></tr>`).join("")}
+    </tbody></table>` : `<p class="pill ok">Alles komt al overeen met BGG.</p>`}
+    ${(BGG.unresolved || []).length ? `<p style="margin-top:12px"><b>Niet gevonden op BGG (${BGG.unresolved.length})</b><br><span class="muted">${esc(BGG.unresolved.join(", "))} — vul hier zelf een BGG-link in bij het spel, dan gaat het de volgende keer mee.</span></p>` : ""}
+    <p style="margin-top:12px"><button class="btn" id="doBgg" ${n ? "" : "disabled"}>${n} spel${n === 1 ? "" : "len"} bijwerken</button> <span class="muted" id="bggMsg"></span></p>
+  </div>`;
+}
+
+async function runBgg() {
+  const btn = $("#doBgg"); btn.disabled = true; $("#bggMsg").textContent = "Bezig…";
+  try {
+    const rows = BGG.games.filter((r) => (S.bggSkip[r.id] === undefined ? r.nameMatch : !S.bggSkip[r.id])).map((r) => bggChanges(r)).filter(Boolean);
+    let b = writeBatch(db), k = 0;
+    for (const c of rows) { b.update(ref("games", c.g.id), { ...c.upd, bggId: BGG.games.find((r) => r.id === c.g.id).bgg.bggId, updatedAt: now() }); if (++k % 400 === 0) { await b.commit(); b = writeBatch(db); } }
+    b.set(doc(db, "events", S.eventId), { bggApplied: now() }, { merge: true });
+    await b.commit();
+    $("#bggMsg").textContent = `Klaar: ${rows.length} spellen bijgewerkt.`;
+  } catch (e) { $("#bggMsg").textContent = "Mislukt: " + e.message; btn.disabled = false; }
+}
+
 function bind() {
+  if ($("#doBgg")) $("#doBgg").onclick = runBgg;
+  document.querySelectorAll("[data-bggfield]").forEach((c) => c.onchange = () => { S.bggOn[c.dataset.bggfield] = c.checked; render(); });
+  document.querySelectorAll("[data-bggrow]").forEach((c) => c.onchange = () => { S.bggSkip[c.dataset.bggrow] = !c.checked; render(); });
+  if ($("#bggAll")) $("#bggAll").onchange = (e) => { BGG.games.forEach((r) => { S.bggSkip[r.id] = !e.target.checked; }); render(); };
   if ($("#doSync")) $("#doSync").onclick = runSync;
   if ($("#doRestore")) $("#doRestore").onclick = runRestore;
   document.querySelectorAll("details[data-fold]").forEach((d) => d.ontoggle = () => { S.fold[d.dataset.fold] = d.open; });
