@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-03 22:46 UTC",
+ "generated": "2026-11-03 22:52 UTC",
  "event": "d14PclMtaeM25doZi7i6",
  "total": 175,
  "games": [
@@ -183,6 +183,40 @@
    }
   },
   {
+   "id": "g-ai-space-puzzle",
+   "name": "AI Space Puzzle",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=AI+Space+Puzzle",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "383064",
+    "bggName": "AI Space Puzzle",
+    "year": "2023",
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "averageWeight": 2.12,
+    "category": "Coöperatief",
+    "categories": [
+     "Deduction",
+     "Puzzle",
+     "Science Fiction",
+     "Space Exploration"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/383064"
+   }
+  },
+  {
    "id": "g-alchemists",
    "name": "Alchemists",
    "source": "link",
@@ -217,6 +251,38 @@
      "Puzzle"
     ],
     "link": "https://boardgamegeek.com/boardgame/161970"
+   }
+  },
+  {
+   "id": "g-arborea",
+   "name": "Arborea",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 120,
+    "weight": "ZWAAR",
+    "category": "Strategie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Arborea",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "371077",
+    "bggName": "Arborea",
+    "year": "2023",
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 120,
+    "weight": "ZWAAR",
+    "averageWeight": 3.69,
+    "category": "Strategie",
+    "categories": [
+     "Animals",
+     "Fantasy"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/371077"
    }
   },
   {
@@ -540,6 +606,39 @@
    }
   },
   {
+   "id": "g-cascadia-alpine-lakes",
+   "name": "Cascadia alpine lakes",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Cascadia+alpine+lakes",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "446815",
+    "bggName": "Cascadia: Alpine Lakes",
+    "year": "2026",
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 45,
+    "weight": "MIDDEL",
+    "averageWeight": 2.38,
+    "category": "Abstract",
+    "categories": [
+     "Animals",
+     "Environmental",
+     "Puzzle"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/446815"
+   }
+  },
+  {
    "id": "g-cat-in-a-box",
    "name": "Cat in a Box",
    "source": "link",
@@ -785,6 +884,75 @@
     "category": "",
     "categories": [],
     "link": "https://boardgamegeek.com/boardgame/442093"
+   }
+  },
+  {
+   "id": "g-codenames-critical-role-adventures",
+   "name": "Codenames critical role adventures",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Codenames+critical+role+adventures",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "465849",
+    "bggName": "Codenames: Critical Role Adventures",
+    "year": "2026",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 25,
+    "weight": "MIDDEL",
+    "averageWeight": 2.71,
+    "category": "Coöperatief",
+    "categories": [
+     "Adventure",
+     "Card Game",
+     "Deduction",
+     "Exploration",
+     "Fantasy"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/465849"
+   }
+  },
+  {
+   "id": "g-container",
+   "name": "Container",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "category": "Strategie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Container",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "229892",
+    "bggName": "Container: 10th Anniversary Jumbo Edition!",
+    "year": "2018",
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "averageWeight": 2.93,
+    "category": "Strategie",
+    "categories": [
+     "Economic",
+     "Industry / Manufacturing",
+     "Nautical",
+     "Transportation"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/229892"
    }
   },
   {
@@ -1250,6 +1418,39 @@
    }
   },
   {
+   "id": "g-endeavor-deep-sea",
+   "name": "Endeavor deep sea",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "category": "Strategie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Endeavor+deep+sea",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "418470",
+    "bggName": "Endeavor: Deep Sea Deluxe Edition",
+    "year": "2024",
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 120,
+    "weight": "MIDDEL",
+    "averageWeight": 2.92,
+    "category": "Strategie",
+    "categories": [
+     "Environmental",
+     "Exploration",
+     "Nautical"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/418470"
+   }
+  },
+  {
    "id": "g-entropy",
    "name": "Entropy",
    "source": "link",
@@ -1435,6 +1636,39 @@
    }
   },
   {
+   "id": "g-fishing",
+   "name": "Fishing",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "durationMin": 45,
+    "weight": "LICHT",
+    "category": "Familie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Fishing",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "419195",
+    "bggName": "Fishing",
+    "year": "2024",
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "durationMin": 60,
+    "weight": "LICHT",
+    "averageWeight": 1.87,
+    "category": "Kaartspel",
+    "categories": [
+     "Animals",
+     "Card Game",
+     "Nautical"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/419195"
+   }
+  },
+  {
    "id": "YmRjdKC7LoMDtYrr1S2K",
    "name": "Fishing 2",
    "source": "link",
@@ -1465,6 +1699,38 @@
      "Nautical"
     ],
     "link": "https://boardgamegeek.com/boardgame/468799"
+   }
+  },
+  {
+   "id": "8C2AlCfsfLum7k1jpW2V",
+   "name": "Food Chain Magnate",
+   "source": "lijst",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "durationMin": 180,
+    "weight": "ZWAAR",
+    "category": null,
+    "categories": null,
+    "link": "",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "175914",
+    "bggName": "Food Chain Magnate",
+    "year": "2015",
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 240,
+    "weight": "ZWAAR",
+    "averageWeight": 4.18,
+    "category": "Strategie",
+    "categories": [
+     "Economic",
+     "Industry / Manufacturing"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/175914"
    }
   },
   {
@@ -1539,6 +1805,38 @@
      "Puzzle"
     ],
     "link": "https://boardgamegeek.com/boardgame/458390"
+   }
+  },
+  {
+   "id": "g-fromage",
+   "name": "Fromage",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Fromage",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "384213",
+    "bggName": "Fromage",
+    "year": "2024",
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 45,
+    "weight": "MIDDEL",
+    "averageWeight": 2.37,
+    "category": "Strategie",
+    "categories": [
+     "Economic",
+     "Farming"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/384213"
    }
   },
   {
@@ -1710,6 +2008,37 @@
      "Economic"
     ],
     "link": "https://boardgamegeek.com/boardgame/182874"
+   }
+  },
+  {
+   "id": "g-great-western-trail-argentina",
+   "name": "Great Western Trail Argentina",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Great+Western+Trail+Argentina",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "364011",
+    "bggName": "Great Western Trail: Argentina",
+    "year": "2022",
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 150,
+    "weight": "ZWAAR",
+    "averageWeight": 3.91,
+    "category": "Strategie",
+    "categories": [
+     "Animals"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/364011"
    }
   },
   {
@@ -2448,6 +2777,39 @@
    }
   },
   {
+   "id": "g-love-letter",
+   "name": "Love letter",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Love+letter",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "277085",
+    "bggName": "Love Letter",
+    "year": "2019",
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "durationMin": 20,
+    "weight": "LICHT",
+    "averageWeight": 1.13,
+    "category": "Party",
+    "categories": [
+     "Card Game",
+     "Deduction",
+     "Renaissance"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/277085"
+   }
+  },
+  {
    "id": "EVwuj57VFwXmsA8iqeRa",
    "name": "Mansions of Madness Chest",
    "source": "link",
@@ -2560,6 +2922,39 @@
    }
   },
   {
+   "id": "g-march-of-the-ants",
+   "name": "March of the Ants",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "category": "Strategie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=March+of+the+Ants",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "416079",
+    "bggName": "March of the Ants: Evolved Edition",
+    "year": "2025",
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 90,
+    "weight": "ZWAAR",
+    "averageWeight": 3.24,
+    "category": "Strategie",
+    "categories": [
+     "Animals",
+     "Civilization",
+     "Exploration"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/416079"
+   }
+  },
+  {
    "id": "G3ZIT1Bg37Mmaa3PiUld",
    "name": "Matchmakers",
    "source": "link",
@@ -2591,6 +2986,40 @@
      "Fantasy"
     ],
     "link": "https://boardgamegeek.com/boardgame/474696"
+   }
+  },
+  {
+   "id": "g-meadow-uitbreidingen",
+   "name": "Meadow + uitbreidingen",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Meadow",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "314491",
+    "bggName": "Meadow",
+    "year": "2021",
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "averageWeight": 2.25,
+    "category": "Kaartspel",
+    "categories": [
+     "Animals",
+     "Card Game",
+     "Environmental",
+     "Puzzle"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/314491"
    }
   },
   {
@@ -2804,6 +3233,39 @@
    }
   },
   {
+   "id": "g-night-of-the-ninja",
+   "name": "Night of the Ninja",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Night+of+the+Ninja",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "306321",
+    "bggName": "Night of the Ninja",
+    "year": "2021",
+    "minPlayers": 4,
+    "maxPlayers": 11,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "averageWeight": 1.84,
+    "category": "Party",
+    "categories": [
+     "Bluffing",
+     "Deduction",
+     "Party Game"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/306321"
+   }
+  },
+  {
    "id": "g-night-soil",
    "name": "Night Soil",
    "source": "link",
@@ -2905,6 +3367,38 @@
      "Print & Play"
     ],
     "link": "https://boardgamegeek.com/boardgame/343990"
+   }
+  },
+  {
+   "id": "g-ohanami",
+   "name": "Ohanami",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 20,
+    "weight": "LICHT",
+    "category": "Kaartspel",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Ohanami",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "270314",
+    "bggName": "Ohanami",
+    "year": "2019",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 20,
+    "weight": "LICHT",
+    "averageWeight": 1.16,
+    "category": "Kaartspel",
+    "categories": [
+     "Card Game",
+     "Number"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/270314"
    }
   },
   {
@@ -3040,6 +3534,71 @@
      "Territory Building"
     ],
     "link": "https://boardgamegeek.com/boardgame/449090"
+   }
+  },
+  {
+   "id": "g-p-i",
+   "name": "P.I.",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=P.I.",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "463574",
+    "bggName": "P.I. (Second Edition)",
+    "year": "2026",
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 60,
+    "weight": "",
+    "averageWeight": 0.0,
+    "category": "Party",
+    "categories": [
+     "Deduction"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/463574"
+   }
+  },
+  {
+   "id": "g-paint-the-roses",
+   "name": "Paint the Roses",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 45,
+    "weight": "MIDDEL",
+    "category": "Coöperatief",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Paint+the+Roses",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "253759",
+    "bggName": "Paint the Roses",
+    "year": "2022",
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 70,
+    "weight": "MIDDEL",
+    "averageWeight": 2.47,
+    "category": "Familie",
+    "categories": [
+     "Deduction",
+     "Fantasy",
+     "Novel-based",
+     "Puzzle"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/253759"
    }
   },
   {
@@ -3186,6 +3745,41 @@
      "Dice"
     ],
     "link": "https://boardgamegeek.com/boardgame/414927"
+   }
+  },
+  {
+   "id": "g-pax-porfiriana-second-edition",
+   "name": "Pax Porfiriana (Second Edition)",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 1,
+    "maxPlayers": 6,
+    "durationMin": 120,
+    "weight": "ZWAAR",
+    "category": "Strategie",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Pax+Porfiriana",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "128780",
+    "bggName": "Pax Porfiriana",
+    "year": "2012",
+    "minPlayers": 1,
+    "maxPlayers": 6,
+    "durationMin": 120,
+    "weight": "ZWAAR",
+    "averageWeight": 3.64,
+    "category": "Strategie",
+    "categories": [
+     "Card Game",
+     "Civil War",
+     "Economic",
+     "Political",
+     "Post-Napoleonic"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/128780"
    }
   },
   {
@@ -4053,6 +4647,108 @@
    }
   },
   {
+   "id": "g-sherlock-13",
+   "name": "Sherlock 13",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Sherlock+13",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "149869",
+    "bggName": "Sherlock 13",
+    "year": "2013",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 15,
+    "weight": "LICHT",
+    "averageWeight": 1.62,
+    "category": "Kaartspel",
+    "categories": [
+     "Card Game",
+     "Deduction",
+     "Novel-based"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/149869"
+   }
+  },
+  {
+   "id": "g-shipwreck-arcana",
+   "name": "Shipwreck Arcana",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "category": "Coöperatief",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Shipwreck+Arcana",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "237954",
+    "bggName": "The Shipwreck Arcana: Promo Pack",
+    "year": "2018",
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "averageWeight": 2.0,
+    "category": "Coöperatief",
+    "categories": [
+     "Expansion for Base-game",
+     "Card Game",
+     "Deduction"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/237954"
+   }
+  },
+  {
+   "id": "g-similo-slimbo",
+   "name": "Similo Slimbo",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 8,
+    "durationMin": 15,
+    "weight": "LICHT",
+    "category": "Coöperatief",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Similo+Slimbo",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "268620",
+    "bggName": "Similo",
+    "year": "2019",
+    "minPlayers": 2,
+    "maxPlayers": 8,
+    "durationMin": 15,
+    "weight": "LICHT",
+    "averageWeight": 1.05,
+    "category": "Kaartspel",
+    "categories": [
+     "Animals",
+     "Card Game",
+     "Children's Game",
+     "Deduction",
+     "Fantasy",
+     "Mythology"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/268620"
+   }
+  },
+  {
    "id": "ZrbglTycG3YANC4Tm3J9",
    "name": "Skull King + XP",
    "source": "link",
@@ -4224,6 +4920,39 @@
      "City Building"
     ],
     "link": "https://boardgamegeek.com/boardgame/407233"
+   }
+  },
+  {
+   "id": "dyIgCW8Sx7xUs7NauSfv",
+   "name": "Tend",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": null,
+    "link": "",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "427388",
+    "bggName": "Tend",
+    "year": "2025",
+    "minPlayers": 1,
+    "maxPlayers": 6,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "averageWeight": 3.05,
+    "category": "Strategie",
+    "categories": [
+     "Animals",
+     "Farming",
+     "Science Fiction"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/427388"
    }
   },
   {
@@ -4645,6 +5374,40 @@
    }
   },
   {
+   "id": "g-trailblazers",
+   "name": "Trailblazers",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Trailblazers",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "370598",
+    "bggName": "Trailblazers: Travel Edition",
+    "year": "2023",
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "averageWeight": 1.78,
+    "category": "Kaartspel",
+    "categories": [
+     "Adventure",
+     "Animals",
+     "Card Game",
+     "Print & Play"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/370598"
+   }
+  },
+  {
    "id": "whoCedunmBVo62NYCWBn",
    "name": "Tricky Time Crisis + Call Of Heroes",
    "source": "link",
@@ -4705,6 +5468,39 @@
      "Number"
     ],
     "link": "https://boardgamegeek.com/boardgame/467581"
+   }
+  },
+  {
+   "id": "g-trio",
+   "name": "Trio",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 3,
+    "maxPlayers": 6,
+    "durationMin": 15,
+    "weight": "LICHT",
+    "category": "Kaartspel",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Trio",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "352515",
+    "bggName": "Trio",
+    "year": "2021",
+    "minPlayers": 3,
+    "maxPlayers": 6,
+    "durationMin": 15,
+    "weight": "LICHT",
+    "averageWeight": 1.07,
+    "category": "Kaartspel",
+    "categories": [
+     "Animals",
+     "Card Game",
+     "Memory"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/352515"
    }
   },
   {
@@ -4888,6 +5684,70 @@
    }
   },
   {
+   "id": "tQfsU2RVstqfBz3rADvA",
+   "name": "Wingspan Pocket",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 30,
+    "weight": "LICHT",
+    "category": "",
+    "categories": null,
+    "link": "",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "473508",
+    "bggName": "Wingspan Pocket",
+    "year": "2026",
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "durationMin": 35,
+    "weight": "LICHT",
+    "averageWeight": 1.93,
+    "category": "Kaartspel",
+    "categories": [
+     "Animals",
+     "Card Game"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/473508"
+   }
+  },
+  {
+   "id": "NvRZUPNUixTzphmNkL6z",
+   "name": "Wonderland's War",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 90,
+    "weight": "MIDDEL",
+    "category": "Strategie",
+    "categories": null,
+    "link": "",
+    "infoChecked": true
+   },
+   "bgg": {
+    "bggId": "227935",
+    "bggName": "Wonderland's War",
+    "year": "2022",
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "durationMin": 125,
+    "weight": "MIDDEL",
+    "averageWeight": 3.05,
+    "category": "Strategie",
+    "categories": [
+     "Fantasy",
+     "Novel-based"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/227935"
+   }
+  },
+  {
    "id": "g-woodcraft",
    "name": "Woodcraft",
    "source": "link",
@@ -4922,6 +5782,39 @@
      "Industry / Manufacturing"
     ],
     "link": "https://boardgamegeek.com/boardgame/355093"
+   }
+  },
+  {
+   "id": "g-world-order-uitbreidingen",
+   "name": "World Order + uitbreidingen",
+   "source": "gezocht",
+   "nameMatch": true,
+   "current": {
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 60,
+    "weight": "MIDDEL",
+    "category": "",
+    "categories": [],
+    "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=World+Order",
+    "infoChecked": false
+   },
+   "bgg": {
+    "bggId": "403150",
+    "bggName": "World Order",
+    "year": "2026",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "durationMin": 180,
+    "weight": "ZWAAR",
+    "averageWeight": 3.81,
+    "category": "Strategie",
+    "categories": [
+     "Economic",
+     "Educational",
+     "Political"
+    ],
+    "link": "https://boardgamegeek.com/boardgame/403150"
    }
   },
   {
@@ -5030,38 +5923,14 @@
  ],
  "unresolved": [
   "-60°",
-  "AI Space Puzzle",
-  "Arborea",
-  "Cascadia alpine lakes",
-  "Codenames critical role adventures",
-  "Container",
   "detective spelletje",
-  "Endeavor deep sea",
-  "Fishing",
-  "Food Chain Magnate",
-  "Fromage",
-  "Great Western Trail Argentina",
   "Lost in the Woods",
-  "Love letter",
-  "March of the Ants",
-  "Meadow + uitbreidingen",
   "Meow Tiles",
-  "Night of the Ninja",
-  "Ohanami",
-  "P.I.",
-  "Paint the Roses",
-  "Pax Porfiriana (Second Edition)",
   "Pina Coladice",
-  "Pokespan",
-  "Sherlock 13",
-  "Shipwreck Arcana",
-  "Similo Slimbo",
-  "Tend",
-  "Trailblazers",
-  "Trio",
-  "Wingspan Pocket",
-  "Wonderland's War",
-  "World Order + uitbreidingen"
+  "Pokespan"
+ ],
+ "rejected": [
+  "Pina Coladice: 415054 = Piña Coladice"
  ],
  "errors": [],
  "tokenSet": false
