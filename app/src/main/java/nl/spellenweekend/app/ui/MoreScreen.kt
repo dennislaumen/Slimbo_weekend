@@ -152,7 +152,7 @@ private fun ManageTab(
                 editTable = GameTable(placeId = places.firstOrNull()?.id ?: "")
             }
         }
-        if (openTables && tables.isEmpty()) item { EmptyHint("Voeg tafels toe met het aantal plaatsen; Match zoekt er een passende bij.") }
+        if (openTables && tables.isEmpty()) item { EmptyHint("Voeg tafels toe met het aantal plaatsen.") }
         if (openTables) items(tables, key = { "t-" + it.id }) { t ->
             val running = busyTables[t.id]
             val next = nextOnTable[t.id]

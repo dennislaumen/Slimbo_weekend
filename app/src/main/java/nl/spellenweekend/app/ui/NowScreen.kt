@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
@@ -57,10 +56,9 @@ fun NowScreen(
     val myself = look.members[me]
     val now = System.currentTimeMillis()
 
-    val invites = activities.filter { me in it.invited && it.isOpen }
-    val running = activities.filter { it.status == ActivityStatus.GESTART }
+    val running = activities.filter { it.isRunning(now) }.sortedBy { it.startAt }
     val upcoming = activities
-        .filter { it.status == ActivityStatus.GEPLAND && it.endAt >= now && me !in it.invited }
+        .filter { it.status == ActivityStatus.GEPLAND && it.startAt > now }
         .sortedBy { it.startAt }
         .take(6)
 
@@ -76,20 +74,13 @@ fun NowScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
                 FilledTonalButton(onClick = {
-                    onEdit(Activity(type = ActivityType.SPEL, startAt = roundedNow()))
+                    onEdit(Activity(type = ActivityType.ETEN, title = "Eten", startAt = roundedNow()))
                 }) {
                     Icon(Icons.Filled.Add, null); Spacer(Modifier.width(6.dp)); Text("Plan iets")
-                }
-                OutlinedButton(onClick = { onOpenTab(MainTab.MATCH) }) {
-                    Icon(Icons.Filled.AutoAwesome, null); Spacer(Modifier.width(6.dp)); Text("Wat kan ik spelen?")
                 }
             }
         }
 
-        if (invites.isNotEmpty()) {
-            item { SectionHeader("Uitnodigingen voor jou") }
-            items(invites, key = { "inv-" + it.id }) { ActivityCard(it, me, look, vm, onEdit) }
-        }
 
         item { SectionHeader("Nu bezig") }
         if (running.isEmpty()) item { EmptyHint("Er loopt nu niets.") }

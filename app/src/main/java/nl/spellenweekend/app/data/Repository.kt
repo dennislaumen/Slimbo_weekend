@@ -249,11 +249,14 @@ class Repository(context: Context) {
 
     suspend fun saveActivity(eventId: String, a: Activity) {
         val c = col(eventId, "activities")
-        val base = a.editableMap() + mapOf("updatedBy" to me, "updatedAt" to now())
+        // Geen aanmeldingen meer: iedereen krijgt 15 min van tevoren een melding.
+        val base = a.editableMap() + mapOf(
+            "updatedBy" to me, "updatedAt" to now(),
+            "participants" to emptyList<String>(), "invited" to emptyList<String>(), "declined" to emptyList<String>(),
+        )
         if (a.id.isBlank()) {
             val data = base + mapOf(
                 "createdBy" to me,
-                "participants" to (a.participants + me).distinct(),
                 "status" to ActivityStatus.GEPLAND.name,
             )
             c.add(data).await()
@@ -306,29 +309,6 @@ class Repository(context: Context) {
             col(eventId, "activities").document(a.id),
             mapOf("status" to status.name, "updatedBy" to me, "updatedAt" to now())
         )
-        val members = col(eventId, "members")
-        when {
-            status == ActivityStatus.GESTART -> a.participants.forEach { p ->
-                batch.update(
-                    members.document(p),
-                    mapOf(
-                        "status" to MemberStatus.BEZET.name,
-                        "statusNote" to a.title,
-                        "updatedAt" to now(),
-                    )
-                )
-            }
-            a.status == ActivityStatus.GESTART -> a.participants.forEach { p ->
-                batch.update(
-                    members.document(p),
-                    mapOf(
-                        "status" to MemberStatus.BESCHIKBAAR.name,
-                        "statusNote" to "",
-                        "updatedAt" to now(),
-                    )
-                )
-            }
-        }
         batch.commit().await()
     }
 }

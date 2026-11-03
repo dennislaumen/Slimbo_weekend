@@ -74,6 +74,11 @@ import java.time.ZoneId
 // Kaartje voor één activiteit
 // =====================================================================
 
+/** Activiteit loopt nu (op basis van de geplande tijd, of handmatig gestart). */
+fun Activity.isRunning(now: Long = System.currentTimeMillis()): Boolean =
+    status == ActivityStatus.GESTART ||
+        (status == ActivityStatus.GEPLAND && now >= startAt && now < endAt)
+
 @Composable
 fun ActivityCard(
     a: Activity,
@@ -83,14 +88,12 @@ fun ActivityCard(
     onEdit: (Activity) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val iAmIn = me in a.participants
-    val iAmInvited = me in a.invited
+    val running = a.isRunning()
     var menu by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
 
     val container = when {
-        a.status == ActivityStatus.GESTART -> MaterialTheme.colorScheme.primaryContainer
-        iAmInvited && a.isOpen -> MaterialTheme.colorScheme.secondaryContainer
+        running -> MaterialTheme.colorScheme.primaryContainer
         else -> MaterialTheme.colorScheme.surfaceContainer
     }
 
@@ -121,11 +124,11 @@ fun ActivityCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (a.status != ActivityStatus.GEPLAND) {
+                    if (running || a.status == ActivityStatus.GEANNULEERD) {
                         Text(
-                            a.status.label,
+                            if (running) "Nu bezig" else a.status.label,
                             style = MaterialTheme.typography.labelLarge,
-                            color = if (a.status == ActivityStatus.GESTART)
+                            color = if (running)
                                 MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -153,68 +156,12 @@ fun ActivityCard(
                 }
             }
 
-            Column(Modifier.padding(top = 8.dp, end = 12.dp)) {
-                val count = if (a.maxParticipants > 0)
-                    "${a.participants.size}/${a.maxParticipants}" else "${a.participants.size}"
+            if (a.notes.isNotBlank()) {
                 Text(
-                    "Doen mee ($count): " + (look.names(a.participants).ifBlank { "nog niemand" }),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                if (a.invited.isNotEmpty()) {
-                    Text(
-                        "Uitgenodigd: " + look.names(a.invited),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (a.declined.isNotEmpty()) {
-                    Text(
-                        "Afgemeld: " + look.names(a.declined),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (a.notes.isNotBlank()) {
-                    Text(
-                        a.notes,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-            }
-
-            if (a.isOpen) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    a.notes,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 8.dp, end = 12.dp),
-                ) {
-                    when {
-                        iAmInvited -> {
-                            Button(onClick = { vm.respond(a, true) }) {
-                                Icon(Icons.Filled.Check, null); Spacer(Modifier.width(6.dp)); Text("Ik doe mee")
-                            }
-                            OutlinedButton(onClick = { vm.respond(a, false) }) { Text("Nee, dank je") }
-                        }
-                        !iAmIn && !a.isFull -> {
-                            FilledTonalButton(onClick = { vm.join(a) }) { Text("Doe mee") }
-                        }
-                        iAmIn -> {
-                            if (a.status == ActivityStatus.GEPLAND) {
-                                Button(onClick = { vm.setActivityStatus(a, ActivityStatus.GESTART) }) {
-                                    Icon(Icons.Filled.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Start")
-                                }
-                            } else {
-                                Button(onClick = { vm.setActivityStatus(a, ActivityStatus.AFGEROND) }) {
-                                    Icon(Icons.Filled.Done, null); Spacer(Modifier.width(6.dp)); Text("Klaar")
-                                }
-                            }
-                            TextButton(onClick = { vm.leave(a) }) { Text("Afmelden") }
-                        }
-                        else -> {
-                            AssistChip(onClick = {}, label = { Text("Vol") })
-                        }
-                    }
-                }
+                )
             }
         }
     }
@@ -245,15 +192,12 @@ fun ActivityEditor(
     onDismiss: () -> Unit,
     onSave: (Activity) -> Unit,
 ) {
-    var type by remember { mutableStateOf(initial.type) }
-    var gameId by remember { mutableStateOf(initial.gameId) }
+    var type by remember { mutableStateOf(if (initial.type == ActivityType.SPEL) ActivityType.ANDERS else initial.type) }
     var title by remember { mutableStateOf(initial.title) }
     var startAt by remember { mutableLongStateOf(if (initial.startAt == 0L) roundedNow() else initial.startAt) }
     var duration by remember { mutableIntStateOf(initial.durationMin) }
     var placeId by remember { mutableStateOf(initial.placeId) }
     var tableId by remember { mutableStateOf(initial.tableId) }
-    var maxP by remember { mutableIntStateOf(initial.maxParticipants) }
-    var invited by remember { mutableStateOf(initial.invited.toSet()) }
     var notes by remember { mutableStateOf(initial.notes) }
     var showTime by remember { mutableStateOf(false) }
 
@@ -286,15 +230,16 @@ fun ActivityEditor(
                                 onSave(
                                     initial.copy(
                                         type = type,
-                                        gameId = if (type == ActivityType.SPEL) gameId else "",
+                                        gameId = "",
                                         title = title.trim(),
                                         startAt = startAt,
                                         durationMin = duration,
                                         placeId = placeId,
                                         tableId = tableId,
-                                        maxParticipants = maxP,
-                                        invited = (invited - initial.participants.toSet()).toList(),
-                                        declined = initial.declined.filter { it !in invited },
+                                        maxParticipants = 0,
+                                        participants = emptyList(),
+                                        invited = emptyList(),
+                                        declined = emptyList(),
                                         notes = notes.trim(),
                                         reminderSent = if (startAt != initial.startAt) false else initial.reminderSent,
                                     )
@@ -312,7 +257,7 @@ fun ActivityEditor(
                 ) {
                     // --- soort ---
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ActivityType.entries.forEach { t ->
+                        ActivityType.plannable.forEach { t ->
                             FilterChip(
                                 selected = type == t,
                                 onClick = {
@@ -325,32 +270,6 @@ fun ActivityEditor(
                         }
                     }
 
-                    // --- spel ---
-                    if (type == ActivityType.SPEL) {
-                        val games = look.games.values.sortedBy { it.name.lowercase() }
-                        if (games.isEmpty()) {
-                            Text(
-                                "Nog geen spellen in de lijst. Voeg ze toe op het tabblad Spellen, of typ hieronder een titel.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        } else {
-                            SelectField(
-                                label = "Spel",
-                                value = gameId,
-                                options = listOf("" to "Kies een spel…") +
-                                    games.map { it.id to "${it.name} (${it.minPlayers}–${it.maxPlayers})" },
-                                onSelect = { id ->
-                                    gameId = id
-                                    look.games[id]?.let { g ->
-                                        title = g.name
-                                        maxP = g.maxPlayers
-                                        duration = g.durationMin
-                                    }
-                                },
-                            )
-                        }
-                    }
 
                     OutlinedTextField(
                         value = title,
@@ -420,56 +339,6 @@ fun ActivityEditor(
                         )
                     }
 
-                    // --- wie ---
-                    NumberField(
-                        label = "Max. deelnemers",
-                        value = maxP,
-                        onChange = { maxP = it },
-                        range = 0..40,
-                        display = { if (it == 0) "geen" else it.toString() },
-                    )
-                    Text("Uitnodigen", style = MaterialTheme.typography.titleSmall)
-                    val others = members.filter { it.id != me }.sortedBy { it.name.lowercase() }
-                    if (others.isEmpty()) {
-                        Text(
-                            "Nog niemand anders in dit weekend. Deel de code via het tabblad Meer.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    others.forEach { m ->
-                        val joined = m.id in initial.participants
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(enabled = !joined) {
-                                    invited = if (m.id in invited) invited - m.id else invited + m.id
-                                },
-                        ) {
-                            Checkbox(
-                                checked = joined || m.id in invited,
-                                onCheckedChange = null,
-                                enabled = !joined,
-                            )
-                            StatusDot(m.status)
-                            Spacer(Modifier.width(8.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(m.name)
-                                val sub = when {
-                                    joined -> "doet al mee"
-                                    m.id in initial.declined -> "had afgemeld"
-                                    m.statusNote.isNotBlank() -> "${m.status.label} · ${m.statusNote}"
-                                    else -> m.status.label
-                                }
-                                Text(
-                                    sub,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
 
                     HorizontalDivider()
                     OutlinedTextField(

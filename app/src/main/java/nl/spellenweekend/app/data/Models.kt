@@ -20,6 +20,8 @@ enum class ActivityType(val label: String) {
 
     companion object {
         fun of(s: String?) = entries.firstOrNull { it.name == s } ?: ANDERS
+        /** Soorten die je kunt plannen (spellen zijn geen planbare activiteit). */
+        val plannable = listOf(ETEN, WANDELEN, ANDERS)
     }
 }
 

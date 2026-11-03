@@ -167,28 +167,25 @@ const SCHEMAS = {
   activities: {
     title: "Activiteit", order: (a, b) => (a.startAt || 0) - (b.startAt || 0),
     fields: [
-      { k: "type", l: "Soort", t: "select", opts: () => TYPES, def: "SPEL", half: true },
+      { k: "type", l: "Soort", t: "select", opts: () => TYPES.filter(([k]) => k !== "SPEL"), def: "ETEN", half: true },
       { k: "status", l: "Status", t: "select", opts: () => STATUS, def: "GEPLAND", half: true },
       { k: "title", l: "Titel", t: "text", req: true },
-      { k: "gameId", l: "Spel (optioneel)", t: "select", opts: () => [["", "—"], ...S.games.map((g) => [g.id, g.name]).sort((a, b) => a[1].localeCompare(b[1], "nl"))] },
       { k: "startAt", l: "Start", t: "datetime", half: true },
       { k: "durationMin", l: "Duur (min)", t: "int", def: 60, half: true },
       { k: "placeId", l: "Locatie", t: "select", opts: () => [["", "—"], ...S.places.map((p) => [p.id, p.name])], half: true },
       { k: "tableId", l: "Tafel", t: "select", opts: () => [["", "—"], ...S.tables.map((t) => [t.id, `${t.name} (${placeName(t.placeId)})`])], half: true },
-      { k: "maxParticipants", l: "Max. deelnemers (0 = geen)", t: "int", def: 0 },
       { k: "notes", l: "Notities", t: "textarea" },
     ],
     beforeSave: (d, isNew) => ({
-      ...d, updatedBy: S.uid, updatedAt: now(),
-      ...(isNew ? { createdBy: S.uid, participants: [], invited: [], declined: [], reminderSent: false } : {}),
+      ...d, type: d.type === "SPEL" ? "ANDERS" : d.type, updatedBy: S.uid, updatedAt: now(),
+      gameId: "", maxParticipants: 0, participants: [], invited: [], declined: [],
+      ...(isNew ? { createdBy: S.uid, reminderSent: false } : {}),
     }),
-    info: (a) => a.participants?.length ? `Deelnemers: ${a.participants.map(memberName).join(", ")}` : "",
     cols: [
       ["Wanneer", (a) => esc(fmtDT(a.startAt))],
       ["Soort", (a) => label(TYPES, a.type)],
       ["Titel", (a) => esc(a.title)],
       ["Waar", (a) => esc([tableName(a.tableId), placeName(a.placeId)].filter(Boolean).join(" · "))],
-      ["Mee", (a) => (a.participants || []).length],
       ["Status", (a) => label(STATUS, a.status)],
     ],
   },
@@ -660,9 +657,25 @@ function subscribe() {
   for (const c of ["games", "places", "tables", "rooms", "guests", "chores", "activities", "members"]) {
     S.unsub.push(onSnapshot(col(c), (snap) => {
       S[c] = snap.docs.map((d) => ({ id: d.id, ...d.data(), name: d.data().name ?? "" }));
+      if (c === "activities") clearSignups();
       softRender();
     }));
   }
+}
+
+// Aanmelden bestaat niet meer: oude deelnemers/uitnodigingen eenmalig uit de activiteiten halen
+let clearingSignups = false;
+async function clearSignups() {
+  const dirty = S.activities.filter((a) => (a.participants || []).length || (a.invited || []).length || (a.declined || []).length);
+  if (!dirty.length || clearingSignups) return;
+  clearingSignups = true;
+  try {
+    const b = writeBatch(db);
+    dirty.forEach((a) => b.update(doc(db, "events", S.eventId, "activities", a.id), { participants: [], invited: [], declined: [] }));
+    await b.commit();
+    toast(`Aanmeldingen gewist bij ${dirty.length} activiteit${dirty.length === 1 ? "" : "en"}`);
+  } catch (e) { console.warn("aanmeldingen wissen mislukt", e); }
+  finally { clearingSignups = false; }
 }
 
 // ------------------------------------------------------------------ start

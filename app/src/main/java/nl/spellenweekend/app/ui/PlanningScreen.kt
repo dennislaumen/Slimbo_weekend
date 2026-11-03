@@ -33,12 +33,10 @@ fun PlanningScreen(
     activities: List<Activity>,
     onEdit: (Activity) -> Unit,
 ) {
-    var onlyMine by rememberSaveable { mutableStateOf(false) }
     var showDone by rememberSaveable { mutableStateOf(false) }
 
     val visible = activities
-        .filter { !onlyMine || me in it.participants || me in it.invited }
-        .filter { showDone || it.isOpen }
+        .filter { showDone || (it.isOpen && it.endAt >= System.currentTimeMillis()) }
         .sortedBy { it.startAt }
     val byDay = visible.groupBy { toDate(it.startAt) }.toSortedMap()
 
@@ -49,7 +47,6 @@ fun PlanningScreen(
         ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = onlyMine, onClick = { onlyMine = !onlyMine }, label = { Text("Alleen van mij") })
                     FilterChip(selected = showDone, onClick = { showDone = !showDone }, label = { Text("Ook afgelopen") })
                 }
             }

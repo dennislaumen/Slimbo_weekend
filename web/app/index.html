@@ -158,7 +158,8 @@ function dayHeader(ms) {
 const roundedNow = () => { const q = 15 * 60000; return Math.ceil(now() / q) * q; };
 const endAt = (a) => (a.startAt || 0) + (a.durationMin || 60) * 60000;
 const isOpen = (a) => a.status === "GEPLAND" || a.status === "GESTART" || !a.status;
-const isFull = (a) => (a.maxParticipants || 0) > 0 && (a.participants || []).length >= a.maxParticipants;
+const PLAN_TYPES = ["ETEN", "WANDELEN", "ANDERS"]; // spellen zijn geen planbare activiteit
+const isRunning = (a, t = now()) => a.status === "GESTART" || ((a.status === "GEPLAND" || !a.status) && t >= a.startAt && t < endAt(a));
 const visibleMembers = () => S.members.filter((m) => !m.web && !m.hidden);
 const member = (id) => S.members.find((m) => m.id === id);
 const nameOf = (id) => member(id)?.name || "Onbekend";
@@ -181,28 +182,23 @@ const upd = (a, extra) => updateDoc(ref("activities", a.id), { ...extra, updated
 const A = {
   setStatus: (status, note) => act(() => updateDoc(ref("members", S.uid), { status, statusNote: (note || "").trim(), updatedAt: now() })),
   setWant: (gid, want) => act(() => updateDoc(ref("members", S.uid), { wants: want ? arrayUnion(gid) : arrayRemove(gid) })),
-  join: (a) => act(() => upd(a, { participants: arrayUnion(S.uid), invited: arrayRemove(S.uid), declined: arrayRemove(S.uid) })),
-  leave: (a) => act(() => upd(a, { participants: arrayRemove(S.uid) })),
-  respond: (a, yes) => act(() => upd(a, { invited: arrayRemove(S.uid), [yes ? "participants" : "declined"]: arrayUnion(S.uid) })),
   remove: (a) => act(() => deleteDoc(ref("activities", a.id)), "Verwijderd"),
   async setActStatus(a, status) {
     await act(async () => {
       const b = writeBatch(db);
       b.update(ref("activities", a.id), { status, updatedBy: S.uid, updatedAt: now() });
-      if (status === "GESTART") (a.participants || []).forEach((p) => b.update(ref("members", p), { status: "BEZET", statusNote: a.title, updatedAt: now() }));
-      else if (a.status === "GESTART") (a.participants || []).forEach((p) => b.update(ref("members", p), { status: "BESCHIKBAAR", statusNote: "", updatedAt: now() }));
       await b.commit();
     });
   },
   async saveActivity(a, isNew) {
     await act(async () => {
       const base = {
-        type: a.type, title: a.title, gameId: a.gameId || "", placeId: a.placeId || "", tableId: a.tableId || "",
-        startAt: a.startAt, durationMin: a.durationMin, maxParticipants: a.maxParticipants || 0,
-        invited: a.invited || [], declined: a.declined || [], notes: a.notes || "", reminderSent: !!a.reminderSent,
+        type: a.type, title: a.title, gameId: "", placeId: a.placeId || "", tableId: a.tableId || "",
+        startAt: a.startAt, durationMin: a.durationMin, maxParticipants: 0,
+        participants: [], invited: [], declined: [], notes: a.notes || "", reminderSent: !!a.reminderSent,
         updatedBy: S.uid, updatedAt: now(),
       };
-      if (isNew) await addDoc(col("activities"), { ...base, createdBy: S.uid, participants: [S.uid], status: "GEPLAND" });
+      if (isNew) await addDoc(col("activities"), { ...base, createdBy: S.uid, status: "GEPLAND" });
       else await setDoc(ref("activities", a.id), base, { merge: true });
     }, isNew ? "Ingepland" : "Opgeslagen");
   },
@@ -228,36 +224,6 @@ const A = {
   },
 };
 
-// ================================================================== matchmaking (zelfde regels als de app)
-function matchmake() {
-  const t = now();
-  const running = S.activities.filter((a) => a.status === "GESTART");
-  const busy = new Set(running.flatMap((a) => a.participants || []));
-  const soon = S.activities.filter((a) => a.status === "GEPLAND" && a.startAt >= t - 15 * 60000 && a.startAt <= t + 60 * 60000);
-  const occupied = new Set([...running, ...soon].map((a) => a.tableId).filter(Boolean));
-  const u = S.ui, myWants = new Set(me()?.wants || []);
-  const free = S.tables.filter((x) => !occupied.has(x.id)).filter((x) => !u.mPlace || x.placeId === u.mPlace);
-  const people = visibleMembers();
-  const sugg = [], near = [];
-  const pool = S.games.filter((x) => !x.wishlist)
-    .filter((g) => !u.mMe || myWants.has(g.id))
-    .filter((g) => !u.mWeights.length || u.mWeights.includes(g.weight))
-    .filter((g) => !u.mCat || (g.category || "Overig") === u.mCat)
-    .filter((g) => !u.mDur || (g.durationMin || 0) <= u.mDur);
-  for (const g of pool) {
-    const min = g.minPlayers || 2, max = g.maxPlayers || 4;
-    const inter = people.filter((m) => (m.wants || []).includes(g.id) && m.status !== "BEZET" && !busy.has(m.id))
-      .sort((a, b) => (a.status === "BESCHIKBAAR" ? 0 : 1) - (b.status === "BESCHIKBAAR" ? 0 : 1));
-    if (inter.length >= min) {
-      const players = inter.slice(0, Math.max(max, min));
-      const table = free.filter((x) => (x.seats || 0) >= players.length).sort((a, b) => a.seats - b.seats)[0];
-      const score = players.length / Math.max(max, 1) * 0.6 + players.filter((p) => p.status === "BESCHIKBAAR").length / players.length * 0.3 + (table ? 0.1 : 0);
-      sugg.push({ g, players, table, score });
-    } else if (inter.length && min - inter.length <= 2) near.push({ g, inter, missing: min - inter.length });
-  }
-  return { sugg: sugg.sort((a, b) => b.score - a.score), near: near.sort((a, b) => a.missing - b.missing), free };
-}
-
 // ================================================================== meldingen (zolang de app open is)
 let prevActs = null;
 const reminded = new Set(JSON.parse(store.get("app_reminded") || "[]"));
@@ -275,39 +241,28 @@ function checkChanges() {
   if (prevActs && S.uid) {
     for (const a of S.activities) {
       const p = prevActs.get(a.id);
-      const involved = (a.participants || []).includes(S.uid) || (a.invited || []).includes(S.uid);
       const byOther = a.updatedBy && a.updatedBy !== S.uid;
-      const where = whereText(a);
-      if ((a.invited || []).includes(S.uid) && !(p?.invited || []).includes(S.uid) && isOpen(a))
-        notify(`Uitnodiging: ${a.title}`, `${nameOf(a.createdBy)} nodigt je uit · ${dayLabel(a.startAt).toLowerCase()} ${fmtTime(a.startAt)}${where ? " · " + where : ""}`, a.id + "inv");
-      if (p && involved && byOther && p.status !== a.status) {
-        if (a.status === "GESTART") notify(`${a.title} begint nu!`, `Gestart door ${nameOf(a.updatedBy)}${where ? " · " + where : ""}`, a.id + "st");
-        if (a.status === "GEANNULEERD") notify(`Geannuleerd: ${a.title}`, `${nameOf(a.updatedBy)} heeft het afgeblazen.`, a.id + "cx");
-      }
-      if (p && involved && byOther && a.status === "GEPLAND" && p.startAt !== a.startAt) { notify(`Nieuwe tijd: ${a.title}`, `${dayLabel(a.startAt).toLowerCase()} om ${fmtTime(a.startAt)}`, a.id + "tm"); reminded.delete(a.id); }
-      if (p && a.createdBy === S.uid) {
-        const joined = (a.participants || []).filter((x) => x !== S.uid && !(p.participants || []).includes(x));
-        if (joined.length) notify(`${joined.map(nameOf).join(", ")} doet mee`, `${a.title} · ${(a.participants || []).length} deelnemers`, a.id + "jn");
-      }
+      if (p && byOther && p.status !== a.status && a.status === "GEANNULEERD") notify(`Geannuleerd: ${a.title}`, `${nameOf(a.updatedBy)} heeft het afgeblazen.`, a.id + "cx");
+      if (p && byOther && a.status === "GEPLAND" && p.startAt !== a.startAt) { notify(`Nieuwe tijd: ${a.title}`, `${dayLabel(a.startAt).toLowerCase()} om ${fmtTime(a.startAt)}`, a.id + "tm"); reminded.delete(a.id); }
     }
   }
   prevActs = cur;
   checkReminders();
 }
+// Iedereen krijgt 15 minuten voor de start een melding (aanmelden is niet nodig)
 function checkReminders() {
   const t = now();
   for (const a of S.activities) {
-    const involved = (a.participants || []).includes(S.uid) || (a.invited || []).includes(S.uid);
     const until = a.startAt - t;
-    if (a.status === "GEPLAND" && involved && !reminded.has(a.id) && until > -5 * 60000 && until <= 20 * 60000) {
+    if ((a.status === "GEPLAND" || !a.status) && !reminded.has(a.id) && until > -5 * 60000 && until <= 15 * 60000) {
       reminded.add(a.id);
       const where = whereText(a);
-      notify(`Zo meteen: ${a.title}`, `Om ${fmtTime(a.startAt)}${where ? " · " + where : ""}`, a.id + "rm");
+      notify(`Over ${Math.max(0, Math.ceil(until / 60000))} min: ${a.title}`, `Om ${fmtTime(a.startAt)}${where ? " · " + where : ""}`, a.id + "rm");
     }
   }
   store.set("app_reminded", JSON.stringify([...reminded]));
 }
-setInterval(() => { if (S.event) { checkReminders(); presence(false); } }, 60000);
+setInterval(() => { if (S.event) { checkReminders(); presence(false); if (S.tab === "nu" || S.tab === "planning") softRender(); } }, 60000);
 
 function presence(opened) {
   if (!S.uid || !S.eventId || !S.event) return;
@@ -351,34 +306,20 @@ $("#dlg").addEventListener("close", () => { if (pending) softRender(); });
 
 // ================================================================== weergaven
 function activityCard(a) {
-  const mine = (a.participants || []).includes(S.uid), inv = (a.invited || []).includes(S.uid);
-  const cls = a.status === "GESTART" ? "running" : inv && isOpen(a) ? "invite" : "";
-  const count = a.maxParticipants > 0 ? `${(a.participants || []).length}/${a.maxParticipants}` : `${(a.participants || []).length}`;
+  const run = isRunning(a);
   const where = whereText(a);
-  let buttons = "";
-  if (isOpen(a)) {
-    if (inv) buttons = `<button class="btn" data-a="yes" data-id="${a.id}">✓ Ik doe mee</button><button class="btn ghost" data-a="no" data-id="${a.id}">Nee, dank je</button>`;
-    else if (!mine && !isFull(a)) buttons = `<button class="btn tonal" data-a="join" data-id="${a.id}">Doe mee</button>`;
-    else if (mine) buttons = (a.status === "GEPLAND" || !a.status
-      ? `<button class="btn" data-a="start" data-id="${a.id}">▶ Start</button>`
-      : `<button class="btn" data-a="done" data-id="${a.id}">✓ Klaar</button>`) + `<button class="btn text" data-a="leave" data-id="${a.id}">Afmelden</button>`;
-    else buttons = `<span class="pill">Vol</span>`;
-  }
-  return `<div class="card ${cls}">
+  const label = run ? "Nu bezig" : a.status === "GEANNULEERD" || a.status === "AFGEROND" ? ASTATUS[a.status] : "";
+  return `<div class="card ${run ? "running" : ""}">
     <div class="row" style="align-items:flex-start">
       <div style="font-size:24px">${(TYPES[a.type] || TYPES.ANDERS)[1]}</div>
       <div class="grow">
         <div class="title">${esc(a.title || (TYPES[a.type] || TYPES.ANDERS)[0])}</div>
         <div class="muted">${esc(dayLabel(a.startAt))} ${fmtTime(a.startAt)}–${fmtTime(endAt(a))}${where ? " · " + esc(where) : ""}</div>
-        ${a.status && a.status !== "GEPLAND" ? `<div class="small" style="color:var(--brand);font-weight:600">${ASTATUS[a.status]}</div>` : ""}
+        ${label ? `<div class="small" style="color:var(--brand);font-weight:600">${label}</div>` : ""}
       </div>
       <button class="btn text" data-a="menu" data-id="${a.id}" aria-label="Meer">⋯</button>
     </div>
-    <div class="small" style="margin-top:6px">Doen mee (${count}): ${esc(names(a.participants) || "nog niemand")}</div>
-    ${(a.invited || []).length ? `<div class="small muted">Uitgenodigd: ${esc(names(a.invited))}</div>` : ""}
-    ${(a.declined || []).length ? `<div class="small muted">Afgemeld: ${esc(names(a.declined))}</div>` : ""}
-    ${a.notes ? `<div class="small" style="margin-top:4px">${esc(a.notes)}</div>` : ""}
-    ${buttons ? `<div class="row" style="margin-top:10px">${buttons}</div>` : ""}
+    ${a.notes ? `<div class="small" style="margin-top:6px">${esc(a.notes)}</div>` : ""}
   </div>`;
 }
 
@@ -419,12 +360,11 @@ function stayView() {
 function nuView() {
   const m = me() || {};
   const t = now();
-  const invites = S.activities.filter((a) => (a.invited || []).includes(S.uid) && isOpen(a));
-  const running = S.activities.filter((a) => a.status === "GESTART");
-  const upcoming = S.activities.filter((a) => a.status === "GEPLAND" && endAt(a) >= t && !(a.invited || []).includes(S.uid)).sort((a, b) => a.startAt - b.startAt).slice(0, 6);
+  const running = S.activities.filter((a) => isRunning(a, t)).sort((a, b) => a.startAt - b.startAt);
+  const upcoming = S.activities.filter((a) => (a.status === "GEPLAND" || !a.status) && a.startAt > t).sort((a, b) => a.startAt - b.startAt).slice(0, 6);
   const people = visibleMembers();
   const notifCard = "Notification" in window && Notification.permission === "default"
-    ? `<div class="card row"><div class="grow small">Meldingen aanzetten voor uitnodigingen en de start van spellen (alleen als de app open is).</div><button class="btn tonal" id="notifOn">Aanzetten</button></div>` : "";
+    ? `<div class="card row"><div class="grow small">Meldingen aanzetten: 15 minuten voor elke activiteit krijg je een seintje (alleen als de app open is).</div><button class="btn tonal" id="notifOn">Aanzetten</button></div>` : "";
   const iosHint = /iPhone|iPad/.test(navigator.userAgent) && !(navigator.standalone === true) && !store.get("app_hideIos")
     ? `<div class="card"><div class="small"><b>Tip:</b> tik in Safari op <b>Deel</b> ⬆️ → <b>Zet op beginscherm</b>. Dan werkt dit als een echte app, met meldingen.</div><button class="btn text small" id="hideIos">Verbergen</button></div>` : "";
   return `${iosHint}
@@ -436,8 +376,7 @@ function nuView() {
   </div>
   ${stayView()}
   ${notifCard}
-  <div class="row"><button class="btn tonal" id="planNew">+ Plan iets</button><button class="btn ghost" data-go="match">✨ Wat kan ik spelen?</button></div>
-  ${invites.length ? `<h2>Uitnodigingen voor jou</h2>${invites.map(activityCard).join("")}` : ""}
+  <div class="row"><button class="btn tonal" id="planNew">+ Plan iets</button></div>
   <h2>Nu bezig</h2>${running.length ? running.map(activityCard).join("") : `<p class="muted center">Er loopt nu niets.</p>`}
   <h2>Straks</h2>${upcoming.length ? upcoming.map(activityCard).join("") : `<p class="muted center">Nog niets gepland.</p>`}
   <h2>Wie is er (${people.length})</h2>
@@ -447,14 +386,12 @@ function nuView() {
 
 function planningView() {
   const list = S.activities
-    .filter((a) => !S.ui.plMine || (a.participants || []).includes(S.uid) || (a.invited || []).includes(S.uid))
-    .filter((a) => S.ui.plDone || isOpen(a))
+    .filter((a) => S.ui.plDone || (isOpen(a) && endAt(a) >= now()))
     .sort((a, b) => a.startAt - b.startAt);
   let out = `<div class="row" style="margin-bottom:8px">
-    <button class="chip ${S.ui.plMine ? "on" : ""}" data-ui="plMine">Alleen van mij</button>
     <button class="chip ${S.ui.plDone ? "on" : ""}" data-ui="plDone">Ook afgelopen</button>
     <span class="grow"></span><button class="btn" id="planNew">+ Plannen</button></div>`;
-  if (!list.length) out += `<p class="muted center">Niets gepland. Spellen, eten, een wandeling: tik op + Plannen.</p>`;
+  if (!list.length) out += `<p class="muted center">Niets gepland. Eten, een wandeling of iets anders: tik op + Plannen. Iedereen krijgt 15 min van tevoren een melding.</p>`;
   let day = null;
   for (const a of list) {
     const d = startOfDay(a.startAt);
@@ -500,7 +437,7 @@ function gamesView() {
       <button class="chip ${u.gWish ? "on" : ""}" data-ui="gWish">Wenslijst</button>
     </div>
     ${filters}
-    <p class="muted small">${list.length} van ${S.games.length} spellen · tik op ♥ voor spellen die je wilt spelen — Match gebruikt dat.</p>
+    <p class="muted small">${list.length} van ${S.games.length} spellen · tik op ♥ voor spellen die je wilt spelen — zo zien anderen wat je graag speelt.</p>
     ${list.map((g) => {
       const f = fans[g.id] || [];
       return `<div class="card row" style="align-items:flex-start">
@@ -513,44 +450,6 @@ function gamesView() {
         ${g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener" class="heart" style="font-size:18px;text-decoration:none" aria-label="BoardGameGeek">↗</a>` : ""}
         <button class="heart ${wants.has(g.id) ? "on" : ""}" data-want="${g.id}" aria-label="Wil ik spelen">${wants.has(g.id) ? "♥" : "♡"}</button>
       </div>`; }).join("")}`;
-}
-
-function matchView() {
-  const r = matchmake();
-  const m = me(), u = S.ui;
-  const active = (u.mWeights.length ? 1 : 0) + (u.mCat ? 1 : 0) + (u.mDur ? 1 : 0) + (u.mPlace ? 1 : 0);
-  const cats = [...new Set(S.games.filter((g) => !g.wishlist).map((g) => g.category || "Overig"))].sort((a, b) => CATEGORIES.indexOf(a) - CATEGORIES.indexOf(b));
-  const places = [...S.places].sort((a, b) => (a.name || "").localeCompare(b.name || "", "nl"));
-  const filters = u.mFilters ? `<div class="card">
-    <div class="small" style="font-weight:600;margin-bottom:6px">Moeilijkheid</div>
-    <div class="row">${Object.entries(WEIGHTS).map(([k, l]) => `<button class="chip ${u.mWeights.includes(k) ? "on" : ""}" data-mweight="${k}">${l}</button>`).join("")}</div>
-    <div class="small" style="font-weight:600;margin:10px 0 6px">Speelduur</div>
-    <div class="row">${[0, 30, 60, 90, 120].map((d) => `<button class="chip ${u.mDur === d ? "on" : ""}" data-mdur="${d}">${d ? "≤ " + d + " min" : "Alle"}</button>`).join("")}</div>
-    <div class="grid2" style="margin-top:10px">
-      <label class="f"><span>Categorie</span><select id="mCat"><option value="">Alle</option>${cats.map((c) => `<option ${u.mCat === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
-      ${places.length ? `<label class="f"><span>Tafel in locatie</span><select id="mPlace"><option value="">Alle locaties</option>${places.map((p) => `<option value="${esc(p.id)}" ${u.mPlace === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>` : ""}
-    </div>
-    ${active ? `<button class="btn text" id="mClear">Filters wissen</button>` : ""}
-  </div>` : "";
-  return `<p class="muted">Op basis van ieders ♥-spellen, status (beschikbaar / reserveerbaar) en vrije tafels.</p>
-    <div class="row" style="margin:10px 0">
-      <button class="chip ${u.mMe ? "on" : ""}" data-ui="mMe">Met mijn ♥ (${(m?.wants || []).length})</button>
-      <button class="chip ${u.mFilters || active ? "on" : ""}" data-ui="mFilters">Filters${active ? ` (${active})` : ""}</button>
-    </div>
-    ${filters}
-    ${m?.status === "BEZET" ? `<div class="card">Je staat op Bezet, dus je telt nu niet mee in de suggesties.</div>` : ""}
-    <h2>Kan nu gespeeld worden</h2>
-    ${r.sugg.length ? r.sugg.map((s, i) => `<div class="card">
-      <div class="title">${esc(s.g.name)}</div>
-      <div class="muted">${s.players.length} van max. ${s.g.maxPlayers} · ${s.g.durationMin} min · ${s.table ? "vrij: " + esc(s.table.name) + (placeName(s.table.placeId) ? " (" + esc(placeName(s.table.placeId)) + ")" : "") : "geen vrije tafel"}</div>
-      <div style="margin:8px 0">${s.players.map((p) => `<span class="pill">${dot(p.status)} ${esc(p.name)}</span>`).join("")}</div>
-      <button class="btn" data-plan="${i}">📅 Plan en nodig uit</button></div>`).join("")
-      : `<p class="muted center">${visibleMembers().every((x) => !(x.wants || []).length) ? "Nog niemand heeft spellen met ♥ gemarkeerd." : u.mMe || active ? "Geen spel past bij deze filters. Pas ze aan of wis ze." : "Geen spel heeft nu genoeg vrije liefhebbers."}</p>`}
-    ${r.near.length ? `<h2>Bijna — er mist nog iemand</h2>${r.near.map((n) => `<div class="card row"><div class="grow">
-      <div class="title">${esc(n.g.name)}</div><div class="muted">Nog ${n.missing} speler${n.missing > 1 ? "s" : ""} nodig · ${esc(n.inter.map((x) => x.name).join(", "))}</div></div>
-      ${(m?.wants || []).includes(n.g.id) ? "" : `<button class="btn ghost" data-want="${n.g.id}">♥ Ik wil ook</button>`}</div>`).join("")}` : ""}
-    <h2>Vrije tafels</h2>
-    ${S.tables.length ? (r.free.length ? `<div>${r.free.map((t) => `<span class="pill">${esc(t.name)} · ${t.seats} pl.${placeName(t.placeId) ? " · " + esc(placeName(t.placeId)) : ""}</span>`).join("")}</div>` : `<p class="muted">Alle tafels zijn bezet of komend uur gereserveerd.</p>`) : `<p class="muted">Nog geen tafels.</p>`}`;
 }
 
 function meerView() {
@@ -583,19 +482,20 @@ function meerView() {
     <button class="btn ghost" id="leave" style="margin:10px 0 30px">Ander weekend kiezen</button>`;
 }
 
-const TABS = [["nu", "Nu", "🏠"], ["planning", "Planning", "📅"], ["spellen", "Spellen", "🎲"], ["match", "Match", "✨"], ["meer", "Meer", "☰"]];
+const TABS = [["nu", "Nu", "🏠"], ["planning", "Planning", "📅"], ["spellen", "Spellen", "🎲"], ["meer", "Meer", "☰"]];
 
 function render() {
   if (!S.uid) { $("#app").innerHTML = `<main><p class="muted center">Verbinden…</p></main>`; return; }
   if (!S.eventId) return renderLogin();
   if (!S.event || !S.loaded.has("members")) { $("#app").innerHTML = `<main><p class="muted center">Laden…</p></main>`; return; }
   if (!member(S.uid)) return renderLogin(); // nog geen lid (bijv. na wissen)
-  const invites = S.activities.filter((a) => (a.invited || []).includes(S.uid) && isOpen(a)).length;
-  const body = { nu: nuView, planning: planningView, spellen: gamesView, match: matchView, meer: meerView }[S.tab]();
+  const views = { nu: nuView, planning: planningView, spellen: gamesView, meer: meerView };
+  if (!views[S.tab]) S.tab = "nu";
+  const body = views[S.tab]();
   const scroll = window.scrollY, focusId = document.activeElement?.id, pos = document.activeElement?.selectionStart;
   $("#app").innerHTML = `<header><span class="logo"><img src="slimbo_logo.png" alt="Slimbo"></span><h1>${esc(S.event.name)}</h1></header>
     <main>${body}</main>
-    <nav class="tabs">${TABS.map(([k, l, ic]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}"><span class="ic">${ic}</span>${l}${k === "nu" && invites ? `<span class="badge">${invites}</span>` : ""}</button>`).join("")}</nav>`;
+    <nav class="tabs">${TABS.map(([k, l, ic]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}"><span class="ic">${ic}</span>${l}</button>`).join("")}</nav>`;
   window.scrollTo(0, scroll);
   if (focusId && $("#" + focusId)) { const el = $("#" + focusId); el.focus(); try { el.setSelectionRange(pos, pos); } catch {} }
   bind();
@@ -634,39 +534,31 @@ async function login() {
 // ================================================================== editor voor activiteiten
 function openEditor(init) {
   const isNew = !init.id;
-  const a = { type: "SPEL", title: "", startAt: roundedNow(), durationMin: 60, maxParticipants: 0, invited: [], declined: [], placeId: "", tableId: "", gameId: "", notes: "", participants: [], ...init };
+  const a = { type: "ETEN", title: "Eten", startAt: roundedNow(), durationMin: 60, placeId: "", tableId: "", notes: "", ...init };
+  if (!PLAN_TYPES.includes(a.type)) a.type = "ANDERS";
   const dlg = $("#dlg");
   const days = []; for (let i = 0; i < 4; i++) days.push(startOfDay(now()) + i * 86400000);
   if (!days.includes(startOfDay(a.startAt))) days.unshift(startOfDay(a.startAt));
   const time = fmtTime(a.startAt);
-  const others = visibleMembers().filter((m) => m.id !== S.uid).sort((x, y) => (x.name || "").localeCompare(y.name || "", "nl"));
-  const games = [...S.games].sort((x, y) => x.name.localeCompare(y.name, "nl"));
   dlg.innerHTML = `<div class="dhead"><button class="btn text" id="eClose">✕</button><h3>${isNew ? "Nieuwe activiteit" : "Bewerken"}</h3><button class="btn" id="eSave">Opslaan</button></div>
   <div class="dbody">
-    <div class="row" style="margin-bottom:10px">${Object.entries(TYPES).map(([k, [l, ic]]) => `<button class="chip ${a.type === k ? "on" : ""}" data-type="${k}">${ic} ${l}</button>`).join("")}</div>
-    <label class="f" id="gameRow" style="${a.type === "SPEL" ? "" : "display:none"}"><span>Spel</span><select id="eGame"><option value="">Kies een spel…</option>${games.map((g) => `<option value="${g.id}" ${a.gameId === g.id ? "selected" : ""}>${esc(g.name)} (${g.minPlayers}–${g.maxPlayers})</option>`).join("")}</select></label>
+    <div class="row" style="margin-bottom:10px">${PLAN_TYPES.map((k) => { const [l, ic] = TYPES[k]; return `<button class="chip ${a.type === k ? "on" : ""}" data-type="${k}">${ic} ${l}</button>`; }).join("")}</div>
     <label class="f"><span>Titel</span><input id="eTitle" value="${esc(a.title)}"></label>
     <div class="grid2">
       <label class="f"><span>Dag</span><select id="eDay">${days.map((d) => `<option value="${d}" ${startOfDay(a.startAt) === d ? "selected" : ""}>${esc(dayLabel(d))}</option>`).join("")}</select></label>
       <label class="f"><span>Tijd</span><input id="eTime" type="time" value="${time}"></label>
       <label class="f"><span>Duur (min)</span><input id="eDur" type="number" min="15" step="15" value="${a.durationMin}"></label>
-      <label class="f"><span>Max. deelnemers (0 = geen)</span><input id="eMax" type="number" min="0" value="${a.maxParticipants}"></label>
       <label class="f"><span>Locatie</span><select id="ePlace"><option value="">—</option>${S.places.map((p) => `<option value="${p.id}" ${a.placeId === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>
       <label class="f"><span>Tafel</span><select id="eTable"><option value="">—</option>${S.tables.map((t) => `<option value="${t.id}" ${a.tableId === t.id ? "selected" : ""}>${esc(t.name)} · ${t.seats} pl.${placeName(t.placeId) ? " · " + esc(placeName(t.placeId)) : ""}</option>`).join("")}</select></label>
     </div>
-    <div class="small" style="font-weight:600;margin:8px 0 4px">Uitnodigen</div>
-    ${others.length ? others.map((m) => { const joined = (a.participants || []).includes(m.id);
-      return `<label class="check"><input type="checkbox" data-inv="${m.id}" ${joined || a.invited.includes(m.id) ? "checked" : ""} ${joined ? "disabled" : ""}>${dot(m.status)}<span class="grow">${esc(m.name)}<br><span class="muted small">${joined ? "doet al mee" : (STATUS[m.status] || STATUS.BESCHIKBAAR)[0] + (m.statusNote ? " · " + esc(m.statusNote) : "")}</span></span></label>`; }).join("")
-      : `<p class="muted small">Nog niemand anders in de app.</p>`}
+    <p class="muted small">Aanmelden is niet nodig: iedereen krijgt 15 minuten van tevoren een melding.</p>
     <label class="f" style="margin-top:12px"><span>Notities</span><textarea id="eNotes">${esc(a.notes)}</textarea></label>
   </div>`;
   const defTitle = { ETEN: "Eten", WANDELEN: "Wandeling" };
   $$("[data-type]", dlg).forEach((b) => b.onclick = () => {
     const t = $("#eTitle"); if (!t.value || t.value === (defTitle[a.type] || "")) t.value = defTitle[b.dataset.type] || "";
     a.type = b.dataset.type; $$("[data-type]", dlg).forEach((x) => x.classList.toggle("on", x === b));
-    $("#gameRow").style.display = a.type === "SPEL" ? "" : "none";
   });
-  $("#eGame").onchange = () => { const g = S.games.find((x) => x.id === $("#eGame").value); if (g) { $("#eTitle").value = g.name; $("#eMax").value = g.maxPlayers; $("#eDur").value = g.durationMin; } };
   $("#eTable").onchange = () => { const t = S.tables.find((x) => x.id === $("#eTable").value); if (t?.placeId) $("#ePlace").value = t.placeId; };
   $("#eClose").onclick = () => dlg.close();
   $("#eSave").onclick = async () => {
@@ -674,12 +566,10 @@ function openEditor(init) {
     if (!title) { toast("Geef de activiteit een titel"); return; }
     const [h, mi] = ($("#eTime").value || "12:00").split(":").map(Number);
     const startAt = Number($("#eDay").value) + (h * 60 + mi) * 60000;
-    const invited = $$("[data-inv]", dlg).filter((c) => c.checked && !c.disabled).map((c) => c.dataset.inv);
     const out = {
-      ...a, type: a.type, title, gameId: a.type === "SPEL" ? $("#eGame").value : "", startAt,
-      durationMin: parseInt($("#eDur").value || "60", 10), maxParticipants: parseInt($("#eMax").value || "0", 10),
-      placeId: $("#ePlace").value, tableId: $("#eTable").value, invited,
-      declined: (a.declined || []).filter((x) => !invited.includes(x)), notes: $("#eNotes").value.trim(),
+      ...a, type: a.type, title, startAt,
+      durationMin: parseInt($("#eDur").value || "60", 10),
+      placeId: $("#ePlace").value, tableId: $("#eTable").value, notes: $("#eNotes").value.trim(),
       reminderSent: startAt !== a.startAt ? false : !!a.reminderSent,
     };
     dlg.close();
@@ -776,8 +666,7 @@ function bind() {
   if ($("#planNew")) $("#planNew").onclick = () => openEditor({});
   $$("[data-a]").forEach((b) => b.onclick = () => {
     const a = S.activities.find((x) => x.id === b.dataset.id); if (!a) return;
-    ({ yes: () => A.respond(a, true), no: () => A.respond(a, false), join: () => A.join(a), leave: () => A.leave(a),
-       start: () => A.setActStatus(a, "GESTART"), done: () => A.setActStatus(a, "AFGEROND"), menu: () => openMenu(a) })[b.dataset.a]();
+    if (b.dataset.a === "menu") openMenu(a);
   });
   $$("[data-ui]").forEach((b) => b.onclick = () => { S.ui[b.dataset.ui] = !S.ui[b.dataset.ui]; render(); });
   $$("[data-want]").forEach((b) => b.onclick = () => A.setWant(b.dataset.want, !(me()?.wants || []).includes(b.dataset.want)));
@@ -785,11 +674,6 @@ function bind() {
   $$("[data-weight]").forEach((b) => b.onclick = () => { const w = b.dataset.weight; S.ui.gWeights = S.ui.gWeights.includes(w) ? S.ui.gWeights.filter((x) => x !== w) : [...S.ui.gWeights, w]; render(); });
   if ($("#gCat")) $("#gCat").onchange = (e) => { S.ui.gCat = e.target.value; e.target.blur(); render(); };
   if ($("#gOwner")) $("#gOwner").onchange = (e) => { S.ui.gOwner = e.target.value; e.target.blur(); render(); };
-  $$("[data-mweight]").forEach((b) => b.onclick = () => { const w = b.dataset.mweight; S.ui.mWeights = S.ui.mWeights.includes(w) ? S.ui.mWeights.filter((x) => x !== w) : [...S.ui.mWeights, w]; render(); });
-  $$("[data-mdur]").forEach((b) => b.onclick = () => { S.ui.mDur = Number(b.dataset.mdur); render(); });
-  if ($("#mCat")) $("#mCat").onchange = (e) => { S.ui.mCat = e.target.value; e.target.blur(); render(); };
-  if ($("#mPlace")) $("#mPlace").onchange = (e) => { S.ui.mPlace = e.target.value; e.target.blur(); render(); };
-  if ($("#mClear")) $("#mClear").onclick = () => { Object.assign(S.ui, { mWeights: [], mCat: "", mDur: 0, mPlace: "" }); render(); };
   if ($("#gClear")) $("#gClear").onclick = () => { Object.assign(S.ui, { gPlayers: 0, gWeights: [], gCat: "", gOwner: "" }); render(); };
   if ($("#gameNew")) $("#gameNew").onclick = () => openGameEditor({});
   $$("[data-gedit]").forEach((el) => el.onclick = () => { const g = S.games.find((x) => x.id === el.dataset.gedit); if (g) openGameEditor(g); });
@@ -804,11 +688,6 @@ function bind() {
   if ($("#reclaim")) $("#reclaim").onclick = () => act(() => updateDoc(ref("members", S.uid), { guestId: "" }));
   if ($("#notifOn")) $("#notifOn").onclick = async () => { try { await Notification.requestPermission(); } catch {} presence(false); render(); };
   if ($("#hideIos")) $("#hideIos").onclick = () => { store.set("app_hideIos", "1"); render(); };
-  $$("[data-plan]").forEach((b) => b.onclick = () => {
-    const s = matchmake().sugg[Number(b.dataset.plan)]; if (!s) return;
-    openEditor({ type: "SPEL", title: s.g.name, gameId: s.g.id, durationMin: s.g.durationMin || 60, maxParticipants: s.g.maxPlayers || 0,
-      tableId: s.table?.id || "", placeId: s.table?.placeId || "", invited: s.players.map((p) => p.id).filter((x) => x !== S.uid) });
-  });
   if ($("#share")) $("#share").onclick = async () => {
     const text = `Doe mee met "${S.event.name}": ${location.href.split("#")[0]} — code ${S.event.joinCode}`;
     try { if (navigator.share) await navigator.share({ text }); else { await navigator.clipboard.writeText(text); toast("Gekopieerd"); } } catch {}

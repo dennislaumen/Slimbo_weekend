@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -44,6 +46,20 @@ class CheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+        }
+
+        /** Extra controle precies op het moment dat de herinnering (15 min voor de start) moet komen. */
+        fun scheduleReminder(context: Context, activityId: String, delayMs: Long) {
+            val request = OneTimeWorkRequestBuilder<CheckWorker>()
+                .setInitialDelay(delayMs.coerceAtLeast(0L), TimeUnit.MILLISECONDS)
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork("herinnering-$activityId", ExistingWorkPolicy.REPLACE, request)
+        }
+
+        fun cancelReminder(context: Context, activityId: String) {
+            WorkManager.getInstance(context).cancelUniqueWork("herinnering-$activityId")
         }
 
         fun cancel(context: Context) {

@@ -198,7 +198,7 @@ fun GamesScreen(
                     }
                 }
                 Text(
-                    "${visible.size} van ${games.size} spellen · tik op ♥ voor spellen die je wilt spelen — Match gebruikt dat.",
+                    "${visible.size} van ${games.size} spellen · tik op ♥ voor spellen die je wilt spelen — zo zien anderen wat je graag speelt.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),

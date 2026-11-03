@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Menu
@@ -53,7 +52,6 @@ enum class MainTab(val label: String, val icon: ImageVector) {
     NU("Nu", Icons.Filled.Today),
     PLANNING("Planning", Icons.Filled.Event),
     SPELLEN("Spellen", Icons.Filled.Casino),
-    MATCH("Match", Icons.Filled.AutoAwesome),
     MEER("Meer", Icons.Filled.Menu),
 }
 
@@ -122,7 +120,6 @@ fun MainScreen(vm: AppViewModel) {
         msg?.let { snackbar.showSnackbar(it); vm.clearMessage() }
     }
 
-    val openInvites = activities.count { me in it.invited && it.isOpen }
 
     Scaffold(
         topBar = {
@@ -152,13 +149,7 @@ fun MainScreen(vm: AppViewModel) {
                         selected = tab == t,
                         onClick = { tab = t },
                         label = { Text(t.label) },
-                        icon = {
-                            if (t == MainTab.NU && openInvites > 0) {
-                                BadgedBox(badge = { Badge { Text("$openInvites") } }) { Icon(t.icon, null) }
-                            } else {
-                                Icon(t.icon, null)
-                            }
-                        },
+                        icon = { Icon(t.icon, null) },
                     )
                 }
             }
@@ -175,7 +166,6 @@ fun MainScreen(vm: AppViewModel) {
                 MainTab.NU -> NowScreen(vm, me, look, members, activities, onEdit, onOpenTab = { tab = it })
                 MainTab.PLANNING -> PlanningScreen(vm, me, look, activities, onEdit)
                 MainTab.SPELLEN -> GamesScreen(vm, me, members, games, guests)
-                MainTab.MATCH -> MatchScreen(vm, me, look, members, games, tables, activities, onEdit)
                 MainTab.MEER -> MoreScreen(vm, me, event, look, members, places, tables, activities, rooms, guests, chores)
             }
         }

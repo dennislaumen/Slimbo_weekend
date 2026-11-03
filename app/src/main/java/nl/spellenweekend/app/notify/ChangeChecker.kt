@@ -25,7 +25,7 @@ class ChangeChecker(context: Context) {
     private val prefs = ctx.getSharedPreferences("meldingen", Context.MODE_PRIVATE)
 
     /** Hoe ver van tevoren een herinnering komt. */
-    private val reminderWindowMs = 20 * 60_000L
+    private val reminderWindowMs = 15 * 60_000L
 
     @Synchronized
     fun check(eventId: String, me: String, snap: Repository.Snapshot, now: Long = System.currentTimeMillis()) {
@@ -52,70 +52,58 @@ class ChangeChecker(context: Context) {
         val out = mutableListOf<Notifier.Message>()
 
         for (a in snap.activities) {
-            val involved = me in a.participants || me in a.invited
             val byOther = a.updatedBy.isNotBlank() && a.updatedBy != me
             val prev = previous.optJSONObject(a.id)
 
-            if (!firstRun) {
-                val prevInvited = prev?.optString("invited")?.split(",")?.toSet() ?: emptySet()
-                val prevParticipants = prev?.optString("participants")?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
-                val prevStatus = prev?.optString("status")
-                val prevStart = prev?.optLong("startAt") ?: a.startAt
-
-                // 1. Uitnodiging
-                if (me in a.invited && me !in prevInvited && a.isOpen) {
+            if (!firstRun && prev != null && byOther) {
+                val prevStatus = prev.optString("status")
+                val prevStart = prev.optLong("startAt", a.startAt)
+                // 1. Geannuleerd (voor iedereen)
+                if (prevStatus != a.status.name && a.status == ActivityStatus.GEANNULEERD) {
                     out += Notifier.Message(
-                        a.id, "invite", "Uitnodiging: ${a.title}",
-                        withWhere("${name(a.createdBy)} nodigt je uit · ${whenText(a)}", a),
+                        a.id, "cancel", "Geannuleerd: ${a.title}",
+                        "${name(a.updatedBy)} heeft het afgeblazen.",
                     )
                 }
-                if (prev != null && involved && byOther) {
-                    // 2. Gestart / geannuleerd
-                    if (prevStatus != a.status.name) {
-                        when (a.status) {
-                            ActivityStatus.GESTART -> out += Notifier.Message(
-                                a.id, "start", "${a.title} begint nu!",
-                                withWhere("Gestart door ${name(a.updatedBy)}", a),
-                            )
-                            ActivityStatus.GEANNULEERD -> out += Notifier.Message(
-                                a.id, "cancel", "Geannuleerd: ${a.title}",
-                                "${name(a.updatedBy)} heeft het afgeblazen.",
-                            )
-                            else -> {}
-                        }
-                    }
-                    // 3. Tijd verschoven
-                    if (a.status == ActivityStatus.GEPLAND && prevStart != a.startAt) {
-                        out += Notifier.Message(
-                            a.id, "time", "Nieuwe tijd: ${a.title}",
-                            "${whenText(a)} (aangepast door ${name(a.updatedBy)})",
-                        )
-                        reminded.remove(a.id)
-                    }
-                }
-                // 4. Iemand doet mee met jouw activiteit
-                if (prev != null && a.createdBy == me) {
-                    val joined = a.participants.filter { it != me && it !in prevParticipants }
-                    if (joined.isNotEmpty()) {
-                        val count = if (a.maxParticipants > 0) "${a.participants.size}/${a.maxParticipants}"
-                        else "${a.participants.size}"
-                        out += Notifier.Message(
-                            a.id, "joined", "${joined.joinToString(", ") { name(it) }} doet mee",
-                            "${a.title} · $count deelnemers",
-                        )
-                    }
+                // 2. Tijd verschoven (voor iedereen)
+                if (a.status == ActivityStatus.GEPLAND && prevStart != a.startAt) {
+                    out += Notifier.Message(
+                        a.id, "time", "Nieuwe tijd: ${a.title}",
+                        "${whenText(a)} (aangepast door ${name(a.updatedBy)})",
+                    )
+                    reminded.remove(a.id)
                 }
             }
 
-            // 5. Herinnering kort voor de start (ook bij de eerste controle)
+            // 3. Herinnering voor iedereen, 15 minuten voor de start (ook bij de eerste controle)
             val untilStart = a.startAt - now
-            if (a.status == ActivityStatus.GEPLAND && involved && a.id !in reminded &&
+            if (a.status == ActivityStatus.GEPLAND && a.id !in reminded &&
                 untilStart in -5 * 60_000L..reminderWindowMs
             ) {
-                out += Notifier.Message(a.id, "reminder", "Zo meteen: ${a.title}", withWhere("Om ${time(a.startAt)}", a))
+                out += Notifier.Message(
+                    a.id, "reminder", "Over ${maxOf(0L, (untilStart + 59_999L) / 60_000L)} min: ${a.title}",
+                    withWhere("Om ${time(a.startAt)}", a),
+                )
                 reminded += a.id
             }
         }
+
+        // Precieze herinneringen inplannen (los van de controle elke ~15 min)
+        val scheduled = prefs.getStringSet("scheduled_$eventId", emptySet())!!.toSet()
+        val wanted = mutableMapOf<String, Long>()
+        for (a in snap.activities) {
+            val at = a.startAt - reminderWindowMs
+            if (a.status == ActivityStatus.GEPLAND && a.id !in reminded && at > now && at - now < 5 * 24 * 3_600_000L) {
+                wanted[a.id] = at
+            }
+        }
+        val scheduledIds = scheduled.map { it.substringBefore("@") }.toSet()
+        for (old in scheduledIds - wanted.keys) runCatching { CheckWorker.cancelReminder(ctx, old) }
+        for ((id, at) in wanted) {
+            val key = "$id@$at"
+            if (key !in scheduled) runCatching { CheckWorker.scheduleReminder(ctx, id, at - now) }
+        }
+        val newScheduled = wanted.map { (id, at) -> "$id@$at" }.toSet()
 
         // Nieuwe toestand bewaren
         val state = JSONObject()
@@ -123,8 +111,6 @@ class ChangeChecker(context: Context) {
             state.put(a.id, JSONObject().apply {
                 put("status", a.status.name)
                 put("startAt", a.startAt)
-                put("invited", a.invited.joinToString(","))
-                put("participants", a.participants.joinToString(","))
             })
         }
         val ids = snap.activities.map { it.id }.toSet()
@@ -133,6 +119,7 @@ class ChangeChecker(context: Context) {
             .putBoolean(baselineKey, true)
             .putStringSet(remindedKey, reminded.filter { it in ids }.toSet())
             .putLong("lastCheck_$eventId", now)
+            .putStringSet("scheduled_$eventId", newScheduled)
             .apply()
 
         out.forEach { Notifier.show(ctx, it) }
