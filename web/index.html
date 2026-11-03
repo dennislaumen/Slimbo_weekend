@@ -456,7 +456,7 @@ function usersView() {
 
 const TABS = [
   ["users", "Gebruikers"], ["weekend", "Weekend"], ["activities", "Planning"], ["games", "Spellen"],
-  ["places", "Locaties"], ["tables", "Tafels"], ["rooms", "Kamers"], ["chores", "Corvee"],
+  ["places", "Locaties"], ["tables", "Tafels"], ["rooms", "Kamers"], ["chores", "Corvee"], ["sheet", "Spreadsheet"],
 ];
 
 function render() {
@@ -467,6 +467,7 @@ function render() {
   let body = "";
   if (S.tab === "users") body = usersView();
   else if (S.tab === "weekend") body = weekendView();
+  else if (S.tab === "sheet") body = sheetView();
   else if (S.tab === "games") body = listView("games", "Klik op een rij om te bewerken. Wijzigingen zijn direct zichtbaar in de app.");
   else body = listView(S.tab);
   $("#app").innerHTML = `<header>
@@ -507,7 +508,75 @@ async function login() {
   } catch (e) { $("#lMsg").textContent = "Mislukt: " + e.message; }
 }
 
+// ------------------------------------------------------------------ eenmalige wijzigingen uit de Google-spreadsheet
+const SYNC_FILE = "sheet-2026-11-03";
+let SYNC = null;
+fetch(`sync/${SYNC_FILE}.json`, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((j) => { SYNC = j; softRender(); }).catch(() => {});
+const normName = (s) => String(s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9]/g, "");
+const gameByName = (n) => S.games.find((g) => normName(g.name) === normName(n));
+
+function sheetView() {
+  if (!SYNC) return `<div class="card"><p class="muted">Wijzigingen laden…</p></div>`;
+  const done = S.event?.syncApplied?.[SYNC_FILE];
+  const li = (arr) => `<ul class="muted" style="margin:4px 0 12px">${arr.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  return `<div class="card">
+    <h3>Wijzigingen uit de Google-spreadsheet</h3>
+    <p class="muted">${esc(SYNC.source)}. Alleen de wijzigingen die je hebt gekozen.</p>
+    ${done ? `<p class="pill ok">Al verwerkt op ${esc(new Date(done).toLocaleString("nl-NL"))}</p>` : ""}
+    <b>Nieuwe spellen (${SYNC.addGames.length})</b>${li(SYNC.addGames.map((g) => `${esc(g.name)} · ${g.wishlist ? "wens" : esc(g.owner)}${gameByName(g.name) ? " <span class='pill'>staat er al</span>" : ""}`))}
+    <b>Andere eigenaar (${SYNC.setOwner.length})</b>${li(SYNC.setOwner.map((o) => `${esc(o.game)} → ${esc(o.owner)}${gameByName(o.game) ? "" : " <span class='pill warn'>niet gevonden</span>"}`))}
+    <b>Nieuwe naam (${SYNC.rename.length})</b>${li(SYNC.rename.map((r) => `${esc(r.game)} → ${esc(r.to)}`))}
+    <b>Notitie erbij (${SYNC.appendNote.length})</b>${li(SYNC.appendNote.map((n) => `${esc(n.game)}: ${esc(n.note.replace(/^ⓘ /, ""))}`))}
+    <b>Verwijderen (${SYNC.deleteGames.length})</b>${li(SYNC.deleteGames.map((n) => `${esc(n)}${gameByName(n) ? "" : " <span class='pill'>al weg</span>"}`))}
+    <b>♥ erbij (${SYNC.hearts.length} spellen)</b>${li(SYNC.hearts.map((h) => `${esc(h.game)}: ${esc(h.names.join(", "))}`))}
+    <p class="muted">♥'s komen alleen bij wie in de app aan zijn naam gekoppeld is. Spellen die al bestaan worden niet dubbel toegevoegd.</p>
+    <button class="btn" id="doSync">${done ? "Nogmaals verwerken" : "Verwerken"}</button> <span class="muted" id="syncMsg"></span>
+  </div>`;
+}
+
+async function runSync() {
+  const btn = $("#doSync"); btn.disabled = true; $("#syncMsg").textContent = "Bezig…";
+  try {
+    let b = writeBatch(db), n = 0;
+    const flush = async () => { if (n) { await b.commit(); b = writeBatch(db); n = 0; } };
+    const put = async (r, d) => { b.set(r, d, { merge: true }); if (++n >= 400) await flush(); };
+    const ids = new Map(S.games.map((g) => [normName(g.name), g.id]));
+    let added = 0, owners = 0, deleted = 0, hearts = 0;
+    const missing = new Set();
+    for (const g of SYNC.addGames) {
+      if (ids.has(normName(g.name))) continue;
+      const { id, ...data } = g;
+      await put(ref("games", id), { ...data, addedBy: S.uid, addedAt: now() }); ids.set(normName(g.name), id); added++;
+    }
+    for (const r of SYNC.rename) { const g = gameByName(r.game); if (g) { await put(ref("games", g.id), { name: r.to }); ids.set(normName(r.to), g.id); } }
+    for (const o of SYNC.setOwner) { const id = ids.get(normName(o.game)); if (id) { await put(ref("games", id), { owner: o.owner, wishlist: false }); owners++; } }
+    for (const x of SYNC.appendNote) {
+      const g = gameByName(x.game);
+      if (g && !(g.notes || "").includes(x.note.replace(/^ⓘ /, ""))) await put(ref("games", g.id), { notes: g.notes ? `${g.notes} · ${x.note.replace(/^ⓘ /, "")}` : x.note });
+    }
+    await flush();
+    for (const name of SYNC.deleteGames) { const g = gameByName(name); if (g) { b.delete(ref("games", g.id)); n++; deleted++; ids.delete(normName(name)); } }
+    await flush();
+    const live = S.members.filter((m) => !m.web && !m.hidden);
+    for (const h of SYNC.hearts) {
+      const gid = ids.get(normName(h.game)); if (!gid) continue;
+      for (const person of h.names) {
+        const guest = S.guests.find((x) => normName(x.name) === normName(person));
+        const m = guest && live.find((x) => x.id === guest.claimedBy);
+        if (!m) { missing.add(person); continue; }
+        if (!(m.wants || []).includes(gid)) { await put(ref("members", m.id), { wants: arrayUnion(gid) }); hearts++; }
+      }
+    }
+    await put(doc(db, "events", S.eventId), { syncApplied: { [SYNC_FILE]: now() } });
+    await flush();
+    $("#syncMsg").textContent = `Klaar: ${added} spellen toegevoegd, ${owners} eigenaars aangepast, ${deleted} verwijderd, ${hearts} ♥ gezet.` +
+      (missing.size ? ` Niet in de app gekoppeld (geen ♥): ${[...missing].join(", ")}.` : "");
+  } catch (e) { $("#syncMsg").textContent = "Mislukt: " + e.message; }
+  btn.disabled = false;
+}
+
 function bind() {
+  if ($("#doSync")) $("#doSync").onclick = runSync;
   document.querySelectorAll("details[data-fold]").forEach((d) => d.ontoggle = () => { S.fold[d.dataset.fold] = d.open; });
   document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => { S.tab = b.dataset.tab; store.set("tab", S.tab); render(); });
   document.querySelectorAll("[data-new]").forEach((b) => b.onclick = () => openEditor(b.dataset.new, null));

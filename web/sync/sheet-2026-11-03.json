@@ -1,0 +1,453 @@
+{
+ "source": "Google-spreadsheet 'Slimbo weekend – Wie neemt wat mee', gelezen op 3 november 2026",
+ "addGames": [
+  {
+   "id": "g-ai-space-puzzle",
+   "name": "AI Space Puzzle",
+   "owner": "Dagmar",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=AI+Space+Puzzle",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-cascadia-alpine-lakes",
+   "name": "Cascadia alpine lakes",
+   "owner": "Mélanie",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Cascadia+alpine+lakes",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-codenames-critical-role-adventures",
+   "name": "Codenames critical role adventures",
+   "owner": "",
+   "wishlist": true,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Codenames+critical+role+adventures",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-escape-room-the-game-2",
+   "name": "Escape Room The Game 2",
+   "owner": "Kelly",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Escape+Room+The+Game+2",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-fromage",
+   "name": "Fromage",
+   "owner": "",
+   "wishlist": true,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Fromage",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-great-western-trail-argentina",
+   "name": "Great Western Trail Argentina",
+   "owner": "Dagmar",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Great+Western+Trail+Argentina",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-love-letter",
+   "name": "Love letter",
+   "owner": "",
+   "wishlist": true,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Love+letter",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Dagmar: liefst niet de standaard variant, om weer eens wat nieuws uit te proberen · Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-meadow-uitbreidingen",
+   "name": "Meadow + uitbreidingen",
+   "owner": "Femke",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Meadow",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-night-of-the-ninja",
+   "name": "Night of the Ninja",
+   "owner": "Danny",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Night+of+the+Ninja",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-old-king-s-crown",
+   "name": "Old King's Crown",
+   "owner": "Moris",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Old+King's+Crown",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-p-i",
+   "name": "P.I.",
+   "owner": "Dagmar",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=P.I.",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-pina-coladice",
+   "name": "Pina Coladice",
+   "owner": "Mélanie",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Pina+Coladice",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-sherlock-13",
+   "name": "Sherlock 13",
+   "owner": "Dagmar",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Sherlock+13",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-trailblazers",
+   "name": "Trailblazers",
+   "owner": "Dagmar",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=Trailblazers",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  },
+  {
+   "id": "g-world-order-uitbreidingen",
+   "name": "World Order + uitbreidingen",
+   "owner": "Robbert",
+   "wishlist": false,
+   "minPlayers": 2,
+   "maxPlayers": 4,
+   "durationMin": 60,
+   "weight": "MIDDEL",
+   "category": "",
+   "link": "https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=World+Order",
+   "video": "",
+   "interested": [],
+   "categories": [],
+   "infoChecked": false,
+   "notes": "ⓘ Spelers/duur onbekend – graag aanvullen"
+  }
+ ],
+ "setOwner": [
+  {
+   "game": "Harmoni Cresendo",
+   "owner": "Femke"
+  },
+  {
+   "game": "Hell of a Deal",
+   "owner": "Danny"
+  },
+  {
+   "game": "Hitster (alle versies)",
+   "owner": "Danny"
+  },
+  {
+   "game": "Parks & potions + uitbreiding",
+   "owner": "Femke"
+  },
+  {
+   "game": "Pokespan",
+   "owner": "Danny"
+  },
+  {
+   "game": "So Clover!",
+   "owner": "Rebecca"
+  }
+ ],
+ "rename": [
+  {
+   "game": "Harmoni Cresendo",
+   "to": "Harmonies + uitbreidingen (crescendo)"
+  },
+  {
+   "game": "Hitster (alle versies)",
+   "to": "Hitster (Org, GP, SP, 100%, Rock, Flying)"
+  },
+  {
+   "game": "Hell of a Deal",
+   "to": "Hell of a Deal (mits op tijd binnen)"
+  }
+ ],
+ "appendNote": [
+  {
+   "game": "Paint the Roses",
+   "note": "ⓘ Tweede exemplaar op de wenslijst (Amela)"
+  },
+  {
+   "game": "Similo Slimbo",
+   "note": "ⓘ Ook Femke neemt een exemplaar mee"
+  }
+ ],
+ "deleteGames": [
+  "Kronologic Groene Doos",
+  "Lost in the Woods",
+  "Pray another Day",
+  "Resafa",
+  "detective spelletje",
+  "-60°",
+  "Abroad",
+  "Merlin (evt met uitbreiding Morgana)",
+  "Navoria",
+  "Phoenix New Horizon",
+  "Rebirth",
+  "Queen Alice"
+ ],
+ "hearts": [
+  {
+   "game": "A wild venture",
+   "names": [
+    "Femke"
+   ]
+  },
+  {
+   "game": "Behind",
+   "names": [
+    "Femke"
+   ]
+  },
+  {
+   "game": "Drillers",
+   "names": [
+    "Amra"
+   ]
+  },
+  {
+   "game": "Echoes of Time",
+   "names": [
+    "Mélanie"
+   ]
+  },
+  {
+   "game": "Everdell Emerland",
+   "names": [
+    "Femke"
+   ]
+  },
+  {
+   "game": "Harmoni Cresendo",
+   "names": [
+    "Amra",
+    "Mandy",
+    "Melissa",
+    "Moris"
+   ]
+  },
+  {
+   "game": "Het Witte Kasteel - Het Duel",
+   "names": [
+    "Manuela"
+   ]
+  },
+  {
+   "game": "JiSoGi",
+   "names": [
+    "Robbert"
+   ]
+  },
+  {
+   "game": "Kano",
+   "names": [
+    "Mélanie"
+   ]
+  },
+  {
+   "game": "Pokespan",
+   "names": [
+    "Amra",
+    "Job"
+   ]
+  },
+  {
+   "game": "Raas",
+   "names": [
+    "Femke",
+    "Manuela"
+   ]
+  },
+  {
+   "game": "Reforest",
+   "names": [
+    "Femke"
+   ]
+  },
+  {
+   "game": "River Market",
+   "names": [
+    "Femke"
+   ]
+  },
+  {
+   "game": "The Gang",
+   "names": [
+    "Robbert"
+   ]
+  },
+  {
+   "game": "Cascadia alpine lakes",
+   "names": [
+    "Femke",
+    "Dagmar"
+   ]
+  },
+  {
+   "game": "Codenames critical role adventures",
+   "names": [
+    "Femke",
+    "Dagmar"
+   ]
+  },
+  {
+   "game": "Fromage",
+   "names": [
+    "Amela"
+   ]
+  },
+  {
+   "game": "Love letter",
+   "names": [
+    "Dagmar"
+   ]
+  },
+  {
+   "game": "Meadow + uitbreidingen",
+   "names": [
+    "Mélanie"
+   ]
+  },
+  {
+   "game": "Pina Coladice",
+   "names": [
+    "Rebecca"
+   ]
+  }
+ ]
+}
