@@ -235,7 +235,7 @@ private fun ManageTab(
 
 /** Kop van een in- en uitklapbare lijst; met optionele +-knop. */
 @Composable
-private fun CollapsibleHeader(text: String, open: Boolean, onToggle: () -> Unit, onAdd: (() -> Unit)? = null) {
+fun CollapsibleHeader(text: String, open: Boolean, onToggle: () -> Unit, onAdd: (() -> Unit)? = null) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle),
