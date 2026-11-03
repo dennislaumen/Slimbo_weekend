@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Bed
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.CloudDownload
@@ -223,6 +226,8 @@ private fun GuestClaim(myself: Member?, guests: List<Guest>, onClaim: (Guest) ->
 @Composable
 fun WeekendInfoTab(event: WeekendEvent?, vm: AppViewModel) {
     val context = LocalContext.current
+    // Blokken standaard ingeklapt; tik op de kop om te openen
+    val open = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -269,10 +274,21 @@ fun WeekendInfoTab(event: WeekendEvent?, vm: AppViewModel) {
         }
         item { JoinCodeCard(event) }
         items(event?.info.orEmpty(), key = { "i-" + it.title }) { section ->
+            val isOpen = open[section.title] == true
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(section.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    section.items.forEach { line ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { open[section.title] = !isOpen },
+                    ) {
+                        Text(section.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Icon(
+                            if (isOpen) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = if (isOpen) "Inklappen" else "Uitklappen",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    if (isOpen) section.items.forEach { line ->
                         Row(Modifier.padding(top = 4.dp)) {
                             Text("•", modifier = Modifier.width(14.dp))
                             Text(line, style = MaterialTheme.typography.bodyMedium)
@@ -322,6 +338,7 @@ fun RoomsTab(look: Lookup, myself: Member?, rooms: List<Room>, guests: List<Gues
     val myRoom = look.roomOf(myself)
     val claimed = guests.filter { it.claimedBy.isNotBlank() }.map { it.name }.toSet()
     val byPlace = rooms.groupBy { it.placeId }.toSortedMap()
+    val open = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -333,8 +350,15 @@ fun RoomsTab(look: Lookup, myself: Member?, rooms: List<Room>, guests: List<Gues
         byPlace.forEach { (placeId, list) ->
             val beds = list.sumOf { it.beds }
             val people = list.sumOf { it.occupants.size }
-            item(key = "h-$placeId") { SectionHeader("${look.placeName(placeId).ifBlank { "Overig" }} · $people personen, $beds bedden") }
-            list.groupBy { it.floor }.toSortedMap().forEach { (floor, roomsOnFloor) ->
+            val isOpen = open[placeId] == true
+            item(key = "h-$placeId") {
+                CollapsibleHeader(
+                    "${look.placeName(placeId).ifBlank { "Overig" }} · $people personen, $beds bedden" +
+                        if (myRoom?.placeId == placeId) " · jouw kamer" else "",
+                    isOpen, { open[placeId] = !isOpen },
+                )
+            }
+            if (isOpen) list.groupBy { it.floor }.toSortedMap().forEach { (floor, roomsOnFloor) ->
                 item(key = "f-$placeId-$floor") {
                     Text(
                         floorLabel(floor),
@@ -410,6 +434,7 @@ private fun NameTag(text: String, active: Boolean, muted: Boolean = false) {
 fun ChoresTab(look: Lookup, myself: Member?, chores: List<Chore>, vm: AppViewModel) {
     val me = look.guestName(myself)
     val byPlace = chores.groupBy { it.placeId }.toSortedMap()
+    val open = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -426,7 +451,15 @@ fun ChoresTab(look: Lookup, myself: Member?, chores: List<Chore>, vm: AppViewMod
             item { EmptyHint("Nog geen corveerooster.") }
         }
         byPlace.forEach { (placeId, list) ->
-            item(key = "ch-$placeId") { SectionHeader(look.placeName(placeId).ifBlank { "Corvee" }) }
+            val isOpen = open[placeId] == true
+            val myCount = list.count { me != null && me in it.names }
+            item(key = "ch-$placeId") {
+                CollapsibleHeader(
+                    look.placeName(placeId).ifBlank { "Corvee" } + if (myCount > 0) " · jij: ${myCount}×" else "",
+                    isOpen, { open[placeId] = !isOpen },
+                )
+            }
+            if (!isOpen) return@forEach
             val byDay = list.groupBy { it.day }.toList().sortedBy { DAY_ORDER.indexOf(it.first) }
             byDay.forEach { (day, dayChores) ->
                 item(key = "cd-$placeId-$day") {
