@@ -22,17 +22,7 @@ jobs:
 
       # De unit-tests hebben geen echte Firebase nodig; de plugin wil alleen een geldig bestand.
       - name: Dummy google-services.json plaatsen
-        run: |
-          cat > app/google-services.json <<'JSON'
-          {
-            "project_info": {"project_number": "1", "project_id": "test", "storage_bucket": "test.appspot.com"},
-            "client": [{
-              "client_info": {"mobilesdk_app_id": "1:1:android:1", "android_client_info": {"package_name": "nl.spellenweekend.app"}},
-              "api_key": [{"current_key": "test"}]
-            }],
-            "configuration_version": "1"
-          }
-          JSON
+        run: cp .github/google-services.test.json app/google-services.json
 
       - uses: gradle/actions/setup-gradle@v4
 
