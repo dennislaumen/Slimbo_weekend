@@ -507,7 +507,7 @@ async function login() {
 }
 
 // ------------------------------------------------------------------ eenmalige wijzigingen uit de Google-spreadsheet
-const SYNC_FILE = "sheet-2026-11-03";
+const SYNC_FILE = "sheet-2026-11-04";
 let SYNC = null;
 fetch(`sync/${SYNC_FILE}.json`, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((j) => { SYNC = j; softRender(); }).catch(() => {});
 const normName = (s) => String(s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9]/g, "");
@@ -525,6 +525,7 @@ function sheetView() {
     <b>Andere eigenaar (${SYNC.setOwner.length})</b>${li(SYNC.setOwner.map((o) => `${esc(o.game)} → ${esc(o.owner)}${gameByName(o.game) ? "" : " <span class='pill warn'>niet gevonden</span>"}`))}
     <b>Nieuwe naam (${SYNC.rename.length})</b>${li(SYNC.rename.map((r) => `${esc(r.game)} → ${esc(r.to)}`))}
     <b>Notitie erbij (${SYNC.appendNote.length})</b>${li(SYNC.appendNote.map((n) => `${esc(n.game)}: ${esc(n.note.replace(/^ⓘ /, ""))}`))}
+    ${(SYNC.removeNote || []).length ? `<b>Notitie eraf (${SYNC.removeNote.length})</b>${li(SYNC.removeNote.map((n) => `${esc(n.game)}: ${esc(n.note)}${gameByName(n.game) ? "" : " <span class='pill warn'>niet gevonden</span>"}`))}` : ""}
     ${(SYNC.notInSheet || []).length ? `<b>Niet in de spreadsheet (${SYNC.notInSheet.length}) — blijven staan</b>${li(SYNC.notInSheet.map((n) => `${esc(n)}${gameByName(n) ? "" : " <span class='pill warn'>niet meer in de lijst</span>"}`))}` : ""}
     <b>♥ erbij (${SYNC.hearts.length} spellen)</b>${li(SYNC.hearts.map((h) => `${esc(h.game)}: ${esc(h.names.join(", "))}`))}
     <p class="muted">♥'s komen alleen bij wie in de app aan zijn naam gekoppeld is. Spellen die al bestaan worden niet dubbel toegevoegd. Er wordt nooit een spel verwijderd: wat niet in de spreadsheet staat, is in de app toegevoegd.</p>
@@ -552,6 +553,11 @@ async function runSync() {
     for (const x of SYNC.appendNote) {
       const g = gameByName(x.game);
       if (g && !(g.notes || "").includes(x.note.replace(/^ⓘ /, ""))) await put(ref("games", g.id), { notes: g.notes ? `${g.notes} · ${x.note.replace(/^ⓘ /, "")}` : x.note });
+    }
+    for (const x of SYNC.removeNote || []) {
+      const g = gameByName(x.game); if (!g || !(g.notes || "").includes(x.note)) continue;
+      const notes = (g.notes || "").split(" · ").filter((p) => !p.replace(/^ⓘ /, "").includes(x.note)).join(" · ");
+      await put(ref("games", g.id), { notes });
     }
     await flush();
     // Spellen die niet in de spreadsheet staan, zijn in de app toegevoegd: nooit verwijderen
