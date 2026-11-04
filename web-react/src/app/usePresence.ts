@@ -12,8 +12,9 @@ function deviceInfo() {
 }
 
 /** Reports "last seen" and device info for the admin site: on open, when the tab becomes visible, and every minute. */
-export function usePresence(actions: Actions) {
+export function usePresence(actions: Actions, enabled = true) {
   useEffect(() => {
+    if (!enabled) return
     const report = (opened: boolean) => void actions.presence(opened, deviceInfo()).catch(() => {})
     const first = window.setTimeout(() => report(true), 1500)
     const tick = window.setInterval(() => report(false), 60_000)
@@ -24,5 +25,5 @@ export function usePresence(actions: Actions) {
       window.clearInterval(tick)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [actions])
+  }, [actions, enabled])
 }

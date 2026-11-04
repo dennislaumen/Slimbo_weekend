@@ -97,15 +97,19 @@ export const addDoc = async (ref: Ref, data: Data) => {
   return { id, path: `${ref.path}/${id}` }
 }
 export const writeBatch = () => {
-  const ops: Array<[string, string, Data | undefined]> = []
+  const ops: Array<[string, string, Data | undefined, boolean?]> = []
   const add = (op: string) => (ref: Ref, data?: Data) => void ops.push([op, ref.path, data])
   return {
-    set: add('set'), update: add('update'), delete: add('delete'),
+    set: (ref: Ref, data: Data, options?: { merge?: boolean }) => void ops.push(['set', ref.path, data, options?.merge]),
+    update: add('update'), delete: add('delete'),
     async commit() {
-      log('batch', '', ops)
-      for (const [op, path, data] of ops) {
+      log('batch', '', ops.map(([op, path, data]) => [op, path, data]))
+      // Like Firestore, a batch is atomic: updating a missing document rejects the whole commit
+      const missing = ops.find(([op, path]) => op === 'update' && !docs.has(path))
+      if (missing) throw new Error(`No document to update: ${missing[1]}`)
+      for (const [op, path, data, merged] of ops) {
         if (op === 'delete') docs.delete(path)
-        else docs.set(path, merge(op === 'set' || op === 'update' ? (docs.get(path) ?? {}) : {}, data ?? {}))
+        else docs.set(path, merge(op === 'update' || merged ? (docs.get(path) ?? {}) : {}, data ?? {}))
       }
       notify()
     },

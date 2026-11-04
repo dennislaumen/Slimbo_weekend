@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState, type ReactElement } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react'
 import { FoldProvider } from '../components/Fold'
 import { forgetEvent, KEYS, rememberEvent, store } from '../data/storage'
-import { isConfigured } from '../data/firebase'
+import { isConfigured, isFake } from '../data/firebase'
 import { useAuth } from '../data/useAuth'
 import { useWeekend } from '../data/useWeekend'
 import { GamesView } from '../features/games/GamesView'
@@ -46,17 +46,19 @@ function Session() {
     select(null)
   }, [select, toast])
   const weekend = useWeekend(auth.uid ? eventId : null, onLost)
+  const event = weekend.data.event
+  const data = useMemo(() => (event ? { ...weekend.data, event } : null), [weekend.data, event])
 
   if (!isConfigured) return <main><div className="card">De app kan nu geen verbinding maken. Probeer het later opnieuw.</div></main>
-  if (!auth.uid) return <Message>{'error' in auth && auth.error ? '' : 'Verbinden…'}</Message>
+  if (!auth.uid) return <Message>{'error' in auth && auth.error ? `Verbinden mislukt: ${auth.error}` : 'Verbinden…'}</Message>
   if (!eventId) return <LoginView uid={auth.uid} onOpen={select} />
-  if (!weekend.ready || !weekend.data.event) return <Message>Laden…</Message>
+  if (!weekend.ready || !data) return <Message>Laden…</Message>
   const isMember = weekend.data.members.some((m) => m.id === auth.uid)
   if (!isMember) return <LoginView uid={auth.uid} onOpen={select} />
 
   return (
-    <WeekendProvider uid={auth.uid} eventId={eventId} data={{ ...weekend.data, event: weekend.data.event }}>
-      <Shell event={weekend.data.event} onLeave={() => select(null)} />
+    <WeekendProvider uid={auth.uid} eventId={eventId} data={data}>
+      <Shell event={data.event} onLeave={() => select(null)} />
     </WeekendProvider>
   )
 }
@@ -68,7 +70,7 @@ function Shell({ event, onLeave }: { event: WeekendEvent; onLeave: () => void })
     return TABS.some(([k]) => k === saved) ? (saved as TabKey) : 'nu'
   })
   useReminders({ activities: data.activities, tables: data.tables, places: data.places, uid, now, nameOf })
-  usePresence(actions)
+  usePresence(actions, !isFake) // the fake would add a write to every test's log
   useEffect(() => rememberEvent(event), [event])
 
   const View = VIEWS[tab]
@@ -83,8 +85,8 @@ function Shell({ event, onLeave }: { event: WeekendEvent; onLeave: () => void })
       <main><View /></main>
       <nav className="tabs">
         {TABS.map(([k, label, icon]) => (
-          <button key={k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); store.set(KEYS.tab, k); window.scrollTo(0, 0) }}>
-            <span className="ic">{icon}</span>{label}
+          <button key={k} className={tab === k ? 'on' : ''} aria-current={tab === k ? 'page' : undefined} onClick={() => { setTab(k); store.set(KEYS.tab, k); window.scrollTo(0, 0) }}>
+            <span className="ic" aria-hidden="true">{icon}</span>{label}
           </button>
         ))}
       </nav>

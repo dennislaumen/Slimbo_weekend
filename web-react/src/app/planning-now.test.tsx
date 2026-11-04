@@ -1,6 +1,8 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '../data/firebase'
 import { scenarios } from '../data/fake/scenarios'
-import { renderApp } from '../test/render'
+import { renderApp, writes } from '../test/render'
 
 const card = (title: string) => screen.getByText(title).closest('.card') as HTMLElement
 
@@ -111,5 +113,50 @@ describe('Nu tab', () => {
     await user.click(screen.getByText('Dirk'))
     await user.click(screen.getByRole('button', { name: 'Koppelen' }))
     expect(await screen.findByText('Hoi Dirk, hoe sta je ervoor?')).toBeInTheDocument()
+    // "Wijzig" first unlinks me, then the claim links Dirk.
+    // (Anna's guest gu1 therefore keeps claimedBy: u1; the legacy app does the same.)
+    expect(writes()).toEqual([
+      ['update', 'events/e1/members/u1', { guestId: '' }],
+      ['batch', '', [
+        ['set', 'events/e1/members/u1', expect.objectContaining({ guestId: 'gu2', name: 'Dirk', hidden: false })],
+        ['update', 'events/e1/guests/gu2', { claimedBy: 'u1' }],
+      ]],
+    ])
+  })
+
+  it('taking over a guest that another device claimed hides the old member and keeps their hearts', async () => {
+    const fixture = scenarios.default!()
+    fixture.guests[1]!.claimedBy = 'u2' // Dirk is linked to Bram's device; Bram has hearts g2, g3
+    const { user } = await renderApp({ fixture })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: 'Ben je iemand anders? Wijzig' }))
+    await user.click(await screen.findByText('Dirk'))
+    await user.click(screen.getByRole('button', { name: 'Koppelen' }))
+    await screen.findByText('Hoi Dirk, hoe sta je ervoor?')
+    const [, , ops] = writes().find((w) => w[0] === 'batch') as [string, string, unknown[][]]
+    expect(ops).toContainEqual(['update', 'events/e1/members/u2', { hidden: true, replacedBy: 'u1', guestId: '' }])
+    expect(ops).toContainEqual(['update', 'events/e1/members/u1', { wants: { union: ['g2', 'g3'] } }])
+  })
+})
+
+describe('Notifications', () => {
+  it('toasts a reminder when an activity starts within 15 minutes', async () => {
+    const fixture = scenarios.default!()
+    fixture.activities = [{ id: 'soon', type: 'ETEN', title: 'Pasta', startAt: Date.now() + 10 * 60_000, durationMin: 60, status: 'GEPLAND', placeId: 'p1' }]
+    await renderApp({ fixture })
+    expect(await screen.findByText(/^Over \d+ min: Pasta — Om \d\d:\d\d · Woonkamer$/)).toBeInTheDocument()
+  })
+
+  it('does not remind about activities that are far away', async () => {
+    await renderApp()
+    expect(screen.queryByText(/^Over \d+ min/)).not.toBeInTheDocument()
+  })
+
+  it('tells me when somebody else cancels an activity, but not when I do', async () => {
+    await renderApp()
+    await act(() => updateDoc(doc(db, 'events', 'e1', 'activities', 'a1'), { status: 'GEANNULEERD', updatedBy: 'u1' }))
+    expect(screen.queryByText(/Geannuleerd: Diner/)).not.toBeInTheDocument()
+    await act(() => updateDoc(doc(db, 'events', 'e1', 'activities', 'a2'), { status: 'GEANNULEERD', updatedBy: 'u2' }))
+    expect(await screen.findByText('Geannuleerd: Wandeling — Bram heeft het afgeblazen.')).toBeInTheDocument()
   })
 })

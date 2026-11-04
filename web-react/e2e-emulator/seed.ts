@@ -25,5 +25,11 @@ export async function seedWeekend() {
   await put('events/e1', { name: 'Emulator weekend', joinCode: 'ABC123', createdBy: 'seed' })
   await put('joinCodes/ABC123', { eventId: 'e1' })
   await put('events/e1/members/seed', { name: 'Seed', status: 'BESCHIKBAAR' })
+  await put('events/e1/members/seed', { name: 'Seed', status: 'BESCHIKBAAR', wants: ['g1'], guestId: 'gu1' })
+  await put('events/e1/places/p1', { name: 'Woonkamer' })
+  await put('events/e1/rooms/r1', { placeId: 'p1', floor: 1, name: 'Blauwe kamer', beds: 2, occupants: ['Anna', 'Dirk'] })
+  await put('events/e1/guests/gu1', { name: 'Anna', roomId: 'r1', claimedBy: 'seed' })
+  await put('events/e1/guests/gu2', { name: 'Dirk', roomId: 'r1', claimedBy: '' })
+  await put('events/e1/activities/a1', { type: 'ETEN', title: 'Diner', startAt: 4102444800000, durationMin: 90, status: 'GEPLAND', createdBy: 'seed' })
   await put('events/e1/games/g1', { name: 'Catan', owner: 'Seed', minPlayers: 3, maxPlayers: 4, durationMin: 90, weight: 'MIDDEL' })
 }

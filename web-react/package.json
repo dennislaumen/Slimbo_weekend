@@ -11,13 +11,15 @@
     "lint": "eslint src e2e e2e-emulator",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:visual": "playwright test e2e/visual.spec.ts",
+    "test:visual": "PW_LEGACY=1 playwright test e2e/visual.spec.ts",
     "dev:fake": "VITE_FAKE=1 vite",
-    "build:emulator": "tsc --noEmit && VITE_EMULATOR=1 vite build --outDir dist-emulator",
+    "build:emulator": "tsc --noEmit && vite build --mode emulator --outDir dist-emulator",
     "test:e2e": "playwright test e2e/flows.spec.ts",
     "test:emulator": "npm run build:emulator && firebase emulators:exec --config ../firebase.json --only auth,firestore --project demo-e2e \"playwright test -c playwright.emulator.config.ts\"",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build:fake && npm run test:e2e",
-    "check:full": "npm run check && npm run test:visual && npm run test:emulator"
+    "check": "npm run typecheck && npm run lint && npm test && npm run test:e2e",
+    "check:full": "npm run check && npm run test:visual && npm run test:emulator",
+    "pretest:e2e": "npm run build:fake",
+    "pretest:visual": "npm run build:fake"
   },
   "dependencies": {
     "firebase": "^13.2.0",
@@ -45,5 +47,8 @@
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

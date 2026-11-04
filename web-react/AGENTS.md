@@ -1,7 +1,7 @@
 # web-react: guide for agents and contributors
 
-React 18 + TypeScript (strict) + Vite port of the legacy `../web/app/index.html`. UI strings are Dutch (match the
-product); code, comments and commit messages are English. Firestore contract: `../docs/schema.md`.
+React 19 + TypeScript (strict) + Vite port of the legacy `../web/app/index.html`. UI strings are Dutch (match the
+product); code, comments and commit messages are English. Firestore contract: `../docs/schema.md` (arrives with the schema-doc PR; until then read `app/.../Models.kt`).
 
 ## Commands
 
@@ -10,7 +10,7 @@ product); code, comments and commit messages are English. Firestore contract: `.
 | `npm run check` | typecheck, lint, Vitest, fake build, Playwright flows | after every change, before saying "done" |
 | `npm test` | Vitest only (domain + integration, about 3 s) | inner loop; `npx vitest run -t "name"` for one test |
 | `npm run test:e2e` | Playwright flows in a browser on the fake backend | after UI or data-flow changes |
-| `npm run test:visual` | pixel parity against the legacy app (12 states, 3 viewports) | after any markup or CSS change; needs `build:fake` first |
+| `npm run test:visual` | pixel parity against the legacy app (12 states, 3 viewports); builds the fake first | after any markup or CSS change |
 | `npm run test:emulator` | real SDK + real `firestore.rules` on the Firebase emulators | after changing writes, rules or the join flow; needs Java 21+ |
 | `npm run dev:fake` | dev server with in-memory data, no Firebase needed | to look at a state, see scenarios below |
 | `npm run check:full` | everything above | before opening a PR |
@@ -49,4 +49,18 @@ Add a scenario by adding a function to `scenarios` in `src/data/fake/scenarios.t
 ## Verifying UI work
 
 Take a screenshot of the affected state (`dev:fake` scenario or a Playwright run) and look at it. For markup or CSS changes run
-`npm run test:visual`; its diffs land in `test-results/visual/*-diff.png`.
+`npm run test:visual`; on failure the pixel count is in the message and the diff image is `test-results/visual/<viewport>-<state>-diff.png`
+(both renders sit next to it).
+
+The legacy app is the source of truth for the parity test. If a change should deliberately differ from it, do not loosen the
+threshold or delete states: add the state name to `INTENTIONAL` in `e2e/visual.spec.ts` with a one-line reason, so the divergence is on record.
+
+Playwright never reuses running servers, so a port clash fails loudly instead of testing an old build. If it says a port is in use,
+stop the leftover process (`ss -ltnp | grep 417`).
+
+## Known gaps (read before trusting a green run)
+
+- The fake ignores security rules, `where()` and server-side validation; only `test:emulator` exercises the rules, and only for the writes it lists.
+- Presence (`usePresence`) is switched off on the fake so it does not add writes to every test's log; it has its own unit test.
+- Firestore documents are trusted as typed in `src/domain/types.ts` without runtime validation.
+- "Ben je iemand anders? Wijzig" unlinks the member first, so the previously claimed guest keeps `claimedBy` (same as the legacy app).

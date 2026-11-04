@@ -6,5 +6,5 @@ export default defineConfig({
   testDir: 'e2e-emulator',
   workers: 1,
   use: { baseURL: 'http://localhost:4175', serviceWorkers: 'block', locale: 'nl-NL' },
-  webServer: { command: 'npx vite preview --outDir dist-emulator --port 4175 --strictPort', url: 'http://localhost:4175/', reuseExistingServer: true },
+  webServer: { command: 'npx vite preview --outDir dist-emulator --port 4175 --strictPort', url: 'http://localhost:4175/', stdout: 'ignore' },
 })

@@ -19,6 +19,9 @@ describe('Spellen tab', () => {
     await user.click(screen.getByRole('button', { name: 'Wenslijst (1)' }))
     expect(gameTitles()).toEqual(['Brass'])
     expect(screen.getByRole('button', { name: 'Gaat mee (3)' })).not.toHaveClass('on')
+    await user.click(screen.getByRole('button', { name: 'Gaat mee (3)' })) // and the other way round
+    expect(gameTitles()).toEqual(['Azul', 'Catan', 'Party 10'])
+    expect(screen.getByRole('button', { name: 'Wenslijst (1)' })).not.toHaveClass('on')
   })
 
   it('"Neem ik mee" filters on my own games and toggles back', async () => {
@@ -90,6 +93,12 @@ describe('Spellen tab', () => {
     expect(within(card('Wingspan')).getByText('1–4 spelers · 60 min · Middel')).toBeInTheDocument()
     expect(within(card('Wingspan')).getByLabelText('Wil ik spelen')).toHaveTextContent('♥')
     expect(screen.getByText('Wingspan toegevoegd')).toBeInTheDocument()
+    // my earlier ♥ on Azul survives: the new heart is added, not written over the list
+    expect(within(card('Azul')).getByLabelText('Wil ik spelen')).toHaveTextContent('♥')
+    expect(writes()).toEqual([
+      ['add', 'events/e1/games', expect.objectContaining({ name: 'Wingspan', owner: 'Anna', wishlist: false, minPlayers: 1, maxPlayers: 4 })],
+      ['update', 'events/e1/members/u1', { wants: { union: ['new1'] } }],
+    ])
   })
 
   it('rejects a duplicate name without writing', async () => {

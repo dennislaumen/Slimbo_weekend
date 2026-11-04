@@ -27,7 +27,7 @@ function ClaimCard() {
       <input id="claimQ" placeholder="Zoek je naam" value={query} onChange={(e) => setQuery(e.target.value)} />
       <div style={{ marginTop: 6 }}>
         {shown.map((g) => (
-          <div key={g.id} className={`list-item ${selected === g.id ? 'sel' : ''}`.trim()} onClick={() => setSelected(g.id)}>
+          <div key={g.id} className={`list-item ${selected === g.id ? 'sel' : ''}`.trim()} role="button" tabIndex={0} onMouseDown={(e) => e.preventDefault()} onClick={() => setSelected(g.id)} onKeyDown={(e) => e.key === 'Enter' && setSelected(g.id)}>
             <span>{g.name}</span>
             {g.claimedBy && g.claimedBy !== uid && <span className="muted small">op ander toestel</span>}
           </div>

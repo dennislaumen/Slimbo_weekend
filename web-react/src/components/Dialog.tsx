@@ -6,8 +6,11 @@ export function Dialog({ onClose, children }: { onClose: () => void; children: R
   useEffect(() => {
     const d = ref.current
     if (!d || d.open) return
+    const opener = document.activeElement as HTMLElement | null
     d.showModal()
     d.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+    // Unmounting closes the dialog; hand focus back to what opened it, like <dialog>.close() does.
+    return () => opener?.focus?.()
   }, [])
   return (
     <dialog ref={ref} onClose={onClose}>

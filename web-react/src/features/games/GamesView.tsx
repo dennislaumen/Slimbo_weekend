@@ -3,7 +3,7 @@ import { Chip } from '../../components/Chip'
 import { useWeekendContext } from '../../app/weekend-context'
 import { ANYONE, filterCount, filterGames, isBrought, NO_FILTERS, sameName, type GameFilters } from '../../domain/games'
 import { CATEGORIES, WEIGHTS } from '../../domain/labels'
-import type { Game, Weight } from '../../domain/types'
+import type { Weight } from '../../domain/types'
 import { GameEditor } from './GameEditor'
 
 const PLAYER_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -12,7 +12,7 @@ export function GamesView() {
   const { data, me, myName, actions, run } = useWeekendContext()
   const [filters, setFilters] = useState<GameFilters>(NO_FILTERS)
   const [showFilters, setShowFilters] = useState(false)
-  const [editing, setEditing] = useState<Game | 'new' | null>(null)
+  const [editing, setEditing] = useState<string | 'new' | null>(null) // game id: the editor reads the live document
   const patch = (p: Partial<GameFilters>) => setFilters((f) => ({ ...f, ...p }))
 
   const wants = useMemo(() => new Set(me?.wants ?? []), [me?.wants])
@@ -31,6 +31,8 @@ export function GamesView() {
   )
   const list = useMemo(() => filterGames(data.games, filters, wants), [data.games, filters, wants])
   const active = filterCount(filters)
+  // null = new game, undefined = closed (or the game was deleted by someone else meanwhile)
+  const editingGame = editing === 'new' ? null : editing ? data.games.find((g) => g.id === editing) : undefined
   const mine = myName.trim()
   const mineActive = filters.owner.toLowerCase() === mine.toLowerCase()
 
@@ -89,7 +91,7 @@ export function GamesView() {
         return (
           <div key={g.id} className="card row" style={{ alignItems: 'flex-start' }}>
             <div className="grow">
-              <div className="title" data-gedit={g.id} style={{ cursor: 'pointer' }} onClick={() => setEditing(g)}>{`${g.name} `}<span className="muted small">✎</span></div>
+              <div className="title" data-gedit={g.id} style={{ cursor: 'pointer' }} role="button" tabIndex={0} onMouseDown={(e) => e.preventDefault()} onClick={() => setEditing(g.id)} onKeyDown={(e) => e.key === 'Enter' && setEditing(g.id)}>{`${g.name} `}<span className="muted small">✎</span></div>
               <div className="muted">{g.wishlist ? 'Wenslijst · nog niemand neemt het mee' : g.owner ? 'Neemt mee: ' + g.owner : 'Eigenaar onbekend'}</div>
               <div className={`small ${g.infoChecked === false ? 'warn' : 'muted'}`}>
                 {g.infoChecked === false ? 'spelers/duur nog onbekend'
@@ -97,12 +99,12 @@ export function GamesView() {
               </div>
               {f.length > 0 && <div className="small" style={{ color: 'var(--accent)', marginTop: 2 }}>{`♥ ${f.join(', ')}`}</div>}
             </div>
-            {g.link && <a href={g.link} target="_blank" rel="noopener" className="heart" style={{ fontSize: 18, textDecoration: 'none' }} aria-label="BoardGameGeek">↗</a>}
+            {g.link && /^https?:\/\//i.test(g.link) && <a href={g.link} target="_blank" rel="noopener" className="heart" style={{ fontSize: 18, textDecoration: 'none' }} aria-label="BoardGameGeek">↗</a>}
             <button className={`heart ${wanted ? 'on' : ''}`.trim()} aria-label="Wil ik spelen" onClick={() => void run(() => actions.setWant(g.id, !wanted))}>{wanted ? '♥' : '♡'}</button>
           </div>
         )
       })}
-      {editing && <GameEditor game={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {editingGame !== undefined && <GameEditor game={editingGame} onClose={() => setEditing(null)} />}
     </>
   )
 }

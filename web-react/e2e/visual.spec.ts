@@ -13,6 +13,8 @@ const LEGACY = 'http://localhost:4173/app/index.html'
 const REACT = 'http://localhost:4174/'
 const NOW = new Date('2027-01-15T12:07:00+01:00')
 const OUT = path.resolve('test-results/visual')
+/** States that deliberately differ from the legacy app, with the reason. Empty on purpose. */
+const INTENTIONAL: Record<string, string> = {}
 
 interface Scenario {
   name: string
@@ -81,7 +83,9 @@ for (const [label, viewport, colorScheme] of [
           fs.writeFileSync(path.join(OUT, `${label}-${s.name}-${legacy ? 'legacy' : 'react'}.png`), shots.at(-1)!)
           await ctx.close()
         }
-        expect(compare(`${label}-${s.name}`, shots[0]!, shots[1]!), 'differing pixels').toBe(0)
+        test.skip(s.name in INTENTIONAL, INTENTIONAL[s.name])
+        const changed = compare(`${label}-${s.name}`, shots[0]!, shots[1]!)
+        expect(changed, `${changed} pixels differ from the legacy app; see ${OUT}/${label}-${s.name}-diff.png`).toBe(0)
       })
     }
   })

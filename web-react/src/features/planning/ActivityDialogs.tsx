@@ -7,7 +7,7 @@ import { DEFAULT_TITLE, PLAN_TYPES, TYPES } from '../../domain/labels'
 import { dayLabel, fmtTime, isOpen, roundedNow, startOfDay } from '../../domain/time'
 import type { Activity, ActivityType } from '../../domain/types'
 
-type Dialogs = { kind: 'edit'; init: Partial<Activity> } | { kind: 'menu'; activity: Activity } | null
+type Dialogs = { kind: 'edit'; init: Partial<Activity> } | { kind: 'menu'; id: string } | null
 
 /** Opens the "edit activity" and "activity menu" dialogs from anywhere in a tab. */
 export function useActivityDialogs(): { edit: (init?: Partial<Activity>) => void; menu: (a: Activity) => void; element: ReactNode } {
@@ -15,9 +15,9 @@ export function useActivityDialogs(): { edit: (init?: Partial<Activity>) => void
   const close = () => setOpen(null)
   const element =
     open?.kind === 'edit' ? <ActivityEditor init={open.init} onClose={close} />
-    : open?.kind === 'menu' ? <ActivityMenu activity={open.activity} onClose={close} onEdit={(init) => setOpen({ kind: 'edit', init })} />
+    : open?.kind === 'menu' ? <ActivityMenu id={open.id} onClose={close} onEdit={(init) => setOpen({ kind: 'edit', init })} />
     : null
-  return { edit: (init = {}) => setOpen({ kind: 'edit', init }), menu: (activity) => setOpen({ kind: 'menu', activity }), element }
+  return { edit: (init = {}) => setOpen({ kind: 'edit', init }), menu: (activity) => setOpen({ kind: 'menu', id: activity.id }), element }
 }
 
 function ActivityEditor({ init, onClose }: { init: Partial<Activity>; onClose: () => void }) {
@@ -98,8 +98,10 @@ function ActivityEditor({ init, onClose }: { init: Partial<Activity>; onClose: (
   )
 }
 
-function ActivityMenu({ activity: a, onClose, onEdit }: { activity: Activity; onClose: () => void; onEdit: (a: Activity) => void }) {
-  const { actions, run } = useWeekendContext()
+function ActivityMenu({ id, onClose, onEdit }: { id: string; onClose: () => void; onEdit: (a: Activity) => void }) {
+  const { data, actions, run } = useWeekendContext()
+  const a = data.activities.find((x) => x.id === id) // live copy: status may change while the menu is open
+  if (!a) return null // deleted by someone else
   const wide = { width: '100%', marginBottom: 8 }
   return (
     <Dialog onClose={onClose}>

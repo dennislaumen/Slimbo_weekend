@@ -5,6 +5,7 @@ on:
     paths:
       - "web-react/**"
       - "web/app/**"
+      - "web/*.png"
       - "firestore.rules"
       - "firebase.json"
       - ".github/workflows/web-react.yml"
@@ -13,9 +14,13 @@ on:
     paths:
       - "web-react/**"
       - "web/app/**"
+      - "web/*.png"
       - "firestore.rules"
       - "firebase.json"
       - ".github/workflows/web-react.yml"
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -39,11 +44,15 @@ jobs:
       # typecheck, lint, Vitest, fake build, Playwright flows
       - run: npm run check
       # Pixel parity with the legacy web/app/index.html
-      - run: npm run test:visual
+      - if: ${{ !cancelled() }}
+        run: npm run test:visual
       # Real SDK and real firestore.rules on the emulators
-      - run: npm run test:emulator
+      - if: ${{ !cancelled() }}
+        run: npm run test:emulator
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: web-react-test-results
-          path: web-react/test-results
+          path: |
+            web-react/test-results
+            web-react/firestore-debug.log

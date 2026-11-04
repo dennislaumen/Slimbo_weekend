@@ -39,8 +39,10 @@ export function useWeekend(eventId: string | null, onLost: (reason: 'gone' | 'de
         () => onLost('denied'),
       ),
       ...COLLECTIONS.map((name) =>
-        onSnapshot(collection(db, 'events', eventId, name), (s) =>
-          update(name, { [name]: s.docs.map((d) => ({ id: d.id, ...d.data() })) }),
+        onSnapshot(
+          collection(db, 'events', eventId, name),
+          (s) => update(name, { [name]: s.docs.map((d) => ({ id: d.id, ...d.data() })) }),
+          () => onLost('denied'),
         ),
       ),
     ]

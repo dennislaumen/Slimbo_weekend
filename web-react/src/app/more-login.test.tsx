@@ -25,10 +25,10 @@ describe('Meer tab', () => {
     const { user } = await renderApp({ tab: 'meer' })
     const input = screen.getByDisplayValue('Anna')
     await user.clear(input)
-    await user.type(input, 'Anneke')
+    await user.type(input, '  Anneke  ')
     await user.click(screen.getAllByRole('button', { name: 'Opslaan' }).at(-1)!)
     expect(await screen.findByText('Naam opgeslagen')).toBeInTheDocument()
-    expect(writes().at(-1)).toEqual(['update', 'events/e1/members/u1', { name: 'Anneke' }])
+    expect(writes()).toEqual([['update', 'events/e1/members/u1', { name: 'Anneke' }]])
   })
 })
 

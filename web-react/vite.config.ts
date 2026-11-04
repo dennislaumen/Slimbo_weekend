@@ -16,5 +16,5 @@ export default defineConfig({
       ? { 'firebase/app': fakeModule('app'), 'firebase/auth': fakeModule('auth'), 'firebase/firestore': fakeModule('firestore') }
       : {},
   },
-  test: { environment: 'jsdom', globals: true, setupFiles: ['src/test-setup.ts'], include: ['src/**/*.test.{ts,tsx}'], env: { VITE_FAKE: '1' } },
+  test: { restoreMocks: true, environment: 'jsdom', globals: true, setupFiles: ['src/test-setup.ts'], include: ['src/**/*.test.{ts,tsx}'], env: { VITE_FAKE: '1' } },
 })
