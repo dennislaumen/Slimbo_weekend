@@ -451,6 +451,8 @@ function usersView() {
     </div>`;
 }
 
+// Spreadsheet en BGG horen bij het eerste weekend (Molen van Medael); niet tonen bij weekenden uit een initiële vulling
+const tabs = () => TABS.filter(([k]) => !(S.event?.initFile && (k === "sheet" || k === "bgg")));
 const TABS = [
   ["users", "Gebruikers"], ["weekend", "Weekend"], ["activities", "Planning"], ["games", "Spellen"],
   ["places", "Locaties"], ["tables", "Tafels"], ["rooms", "Kamers"], ["chores", "Corvee"], ["sheet", "Spreadsheet"], ["bgg", "BGG"],
@@ -459,7 +461,7 @@ const TABS = [
 function render() {
   if (!S.uid) { $("#app").innerHTML = `<main><p class="muted">Verbinden…</p></main>`; return; }
   if (!S.eventId || !S.event) return renderLogin();
-  if (!TABS.some(([k]) => k === S.tab)) S.tab = "weekend"; // bv. het vervallen tabblad "Laden"
+  if (!tabs().some(([k]) => k === S.tab)) S.tab = "weekend"; // bv. het vervallen tabblad "Laden"
   const me = S.members.find((m) => m.id === S.uid);
   let body = "";
   if (S.tab === "users") body = usersView();
@@ -474,7 +476,7 @@ function render() {
         <span class="who">${esc(me?.name || "")}</span>
         <a class="muted" href="https://www.slimbo.nl/" target="_blank" rel="noopener">🌐 slimbo.nl</a>
         <button class="btn ghost" id="logout">Ander weekend</button></div>
-      <nav>${TABS.map(([k, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}">${l}</button>`).join("")}</nav>
+      <nav>${tabs().map(([k, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}">${l}</button>`).join("")}</nav>
     </header><main>${body}</main>`;
   bind();
 }
@@ -488,8 +490,57 @@ function renderLogin() {
     <label class="f"><span>Jouw naam</span><input id="lName" value="${esc(store.get("name") || "")}"></label>
     <button class="btn" id="lGo">Inloggen</button> <span class="muted" id="lMsg"></span>
     <p class="muted" style="margin-top:14px"><a href="https://www.slimbo.nl/" target="_blank" rel="noopener">🌐 www.slimbo.nl</a></p>
+  </div>
+  <div class="login card" style="margin-top:14px">
+    <h3>Nieuw weekend aanmaken</h3>
+    <p class="muted">Eenmalige vulling van een nieuw weekend. Vul hierboven je naam in; je krijgt daarna de weekendcode voor de app.</p>
+    ${INIT_FILES.map((f) => `<div class="row" style="margin:6px 0"><span class="grow">${esc(f.label)}</span><button class="btn tonal" data-init="${esc(f.id)}">Aanmaken</button></div>`).join("")}
+    <span class="muted" id="iMsg"></span>
   </div></main>`;
   $("#lGo").onclick = login;
+  document.querySelectorAll("[data-init]").forEach((b) => b.onclick = () => createFromInit(b.dataset.init, b));
+}
+
+// ------------------------------------------------------------------ initiële vulling van een nieuw weekend (eenmalig)
+// Het bronbestand wordt alleen gebruikt om een NIEUW weekend te vullen; daarna is de database de enige bron.
+const INIT_FILES = [{ id: "kaldenbroek-2027", label: "Mini Slimbo 2027 · Huys Kaldenbroek (15–18 januari 2027)" }];
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const newCode = () => Array.from({ length: 6 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join("");
+
+async function createFromInit(file, btn) {
+  const name = $("#lName").value.trim(), msg = $("#iMsg");
+  if (!name) { msg.textContent = "Vul eerst hierboven je naam in."; return; }
+  btn.disabled = true; msg.textContent = "Bezig…";
+  try {
+    const seed = await (await fetch(`init/${file}.json`, { cache: "no-store" })).json();
+    const evRef = doc(db, "events", seed.id);
+    const existing = await getDoc(evRef);
+    if (existing.exists() && (existing.data().initDone || existing.data().createdBy !== S.uid)) {
+      $("#lCode").value = existing.data().joinCode || "";
+      msg.textContent = `Dit weekend bestaat al (code ${existing.data().joinCode}). Log hierboven in met die code.`;
+      btn.disabled = false; return;
+    }
+    const code = existing.exists() ? existing.data().joinCode : newCode();
+    if (!existing.exists()) {
+      await setDoc(evRef, { ...seed.event, joinCode: code, createdBy: S.uid, createdAt: now(), initFile: file, initVersion: seed.version || 1, initDone: false });
+    }
+    await setDoc(doc(db, "events", seed.id, "members", S.uid), { name: name + " (web)", web: true, status: "BEZET", updatedAt: now() }, { merge: true });
+    const ops = [];
+    const sub = (c, id) => doc(db, "events", seed.id, c, id);
+    for (const c of ["places", "tables", "rooms", "guests", "chores"]) for (const it of seed[c] || []) { const { id, ...d } = it; ops.push([sub(c, id), d]); }
+    for (const g of seed.games || []) { const { id, ...d } = g; ops.push([sub("games", id), { ...d, addedBy: S.uid, addedAt: now() }]); }
+    for (const a of seed.activities || []) {
+      const { id, ...d } = a;
+      ops.push([sub("activities", id), { ...d, createdBy: S.uid, participants: [], invited: [], declined: [], status: "GEPLAND", maxParticipants: 0, tableId: "", gameId: "", reminderSent: false, updatedBy: S.uid, updatedAt: now() }]);
+    }
+    for (let i = 0; i < ops.length; i += 400) {
+      const b = writeBatch(db); ops.slice(i, i + 400).forEach(([r, d]) => b.set(r, d, { merge: true })); await b.commit();
+    }
+    await setDoc(evRef, { initDone: true, initAt: now() }, { merge: true });
+    store.set("eventId", seed.id); store.set("name", name);
+    S.eventId = seed.id; subscribe();
+    toast(`Weekend aangemaakt · code ${code}`);
+  } catch (e) { msg.textContent = "Mislukt: " + e.message; btn.disabled = false; }
 }
 
 async function login() {
