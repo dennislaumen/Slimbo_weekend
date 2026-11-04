@@ -1,0 +1,27 @@
+{
+  "event": {
+    "name": "Mini Slimbo Testweekend", "joinCode": "ABC123", "venue": "Huys Kaldenbroek", "address": "Kaldenbroekweg 1, Heerlen",
+    "phone": "+31 6 12345678", "checkInAt": 1799000000000, "checkOutAt": 1799200000000,
+    "info": [{ "title": "Eten", "items": ["Ontbijt om 9:00", "Diner om 18:30"] }, { "title": "Parkeren", "items": ["Op het erf"] }]
+  },
+  "members": [
+    { "id": "u1", "name": "Anna", "status": "BESCHIKBAAR", "statusNote": "tot 15:00 vrij", "wants": ["g2"], "guestId": "gu1" },
+    { "id": "u2", "name": "Bram", "status": "BEZET", "wants": ["g2", "g3"] },
+    { "id": "u3", "name": "Cleo", "status": "RESERVEERBAAR", "wants": [] }
+  ],
+  "games": [
+    { "id": "g1", "name": "Catan", "owner": "Anna", "minPlayers": 3, "maxPlayers": 4, "durationMin": 90, "weight": "MIDDEL", "category": "Strategie" },
+    { "id": "g2", "name": "Azul", "owner": "Bram", "minPlayers": 2, "maxPlayers": 4, "durationMin": 45, "weight": "LICHT", "category": "Abstract", "link": "https://boardgamegeek.com/boardgame/230802" },
+    { "id": "g3", "name": "Brass", "owner": "", "wishlist": true, "minPlayers": 2, "maxPlayers": 4, "durationMin": 120, "weight": "ZWAAR", "category": "Strategie" },
+    { "id": "g4", "name": "Party 10", "owner": "Cleo", "minPlayers": 4, "maxPlayers": 10, "infoChecked": false }
+  ],
+  "places": [{ "id": "p1", "name": "Woonkamer" }, { "id": "p2", "name": "Serre" }],
+  "tables": [{ "id": "t1", "name": "Tafel 1", "placeId": "p1", "seats": 6 }],
+  "activities": [
+    { "id": "a1", "type": "ETEN", "title": "Diner", "startAt": 4102444800000, "durationMin": 90, "status": "GEPLAND", "placeId": "p1", "notes": "Pasta" },
+    { "id": "a2", "type": "WANDELEN", "title": "Wandeling", "startAt": 4102531200000, "durationMin": 60, "status": "GEPLAND" }
+  ],
+  "rooms": [{ "id": "r1", "placeId": "p1", "floor": 1, "name": "Blauwe kamer", "beds": 2, "occupants": ["Anna", "Dirk"] }],
+  "guests": [{ "id": "gu1", "name": "Anna", "roomId": "r1", "claimedBy": "u1" }, { "id": "gu2", "name": "Dirk", "roomId": "r1" }],
+  "chores": [{ "id": "c1", "placeId": "p1", "day": "Zaterdag", "slot": "ochtend", "startAt": 0, "endAt": 0, "names": ["Anna", "Dirk"] }]
+}

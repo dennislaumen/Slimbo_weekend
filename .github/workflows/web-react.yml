@@ -1,0 +1,36 @@
+name: Web React prototype
+
+on:
+  pull_request:
+    paths:
+      - "web-react/**"
+      - "web/app/**"
+      - ".github/workflows/web-react.yml"
+  push:
+    branches: [main]
+    paths:
+      - "web-react/**"
+      - "web/app/**"
+      - ".github/workflows/web-react.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-react
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web-react/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build:fake
+      # Behaviour tests, and pixel parity against the legacy web/app/index.html
+      - run: npx playwright test

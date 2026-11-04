@@ -1,0 +1,5 @@
+node_modules
+dist
+dist-fake
+test-results
+e2e/__screenshots__/actual
