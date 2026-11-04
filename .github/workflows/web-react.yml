@@ -5,12 +5,16 @@ on:
     paths:
       - "web-react/**"
       - "web/app/**"
+      - "firestore.rules"
+      - "firebase.json"
       - ".github/workflows/web-react.yml"
   push:
     branches: [main]
     paths:
       - "web-react/**"
       - "web/app/**"
+      - "firestore.rules"
+      - "firebase.json"
       - ".github/workflows/web-react.yml"
 
 jobs:
@@ -26,11 +30,20 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: web-react/package-lock.json
+      - uses: actions/setup-java@v4 # the Firebase emulators need Java 21+
+        with:
+          distribution: temurin
+          java-version: "21"
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build:fake
-      # Behaviour tests, and pixel parity against the legacy web/app/index.html
-      - run: npx playwright test
+      # typecheck, lint, Vitest, fake build, Playwright flows
+      - run: npm run check
+      # Pixel parity with the legacy web/app/index.html
+      - run: npm run test:visual
+      # Real SDK and real firestore.rules on the emulators
+      - run: npm run test:emulator
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-react-test-results
+          path: web-react/test-results

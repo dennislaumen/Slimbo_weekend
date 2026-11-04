@@ -2,4 +2,7 @@ node_modules
 dist
 dist-fake
 test-results
-e2e/__screenshots__/actual
+dist-emulator
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

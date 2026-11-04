@@ -8,10 +8,16 @@
     "build": "tsc --noEmit && vite build",
     "build:fake": "tsc --noEmit && VITE_FAKE=1 vite build --outDir dist-fake",
     "preview": "vite preview",
-    "lint": "eslint src e2e",
+    "lint": "eslint src e2e e2e-emulator",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:visual": "playwright test"
+    "test:visual": "playwright test e2e/visual.spec.ts",
+    "dev:fake": "VITE_FAKE=1 vite",
+    "build:emulator": "tsc --noEmit && VITE_EMULATOR=1 vite build --outDir dist-emulator",
+    "test:e2e": "playwright test e2e/flows.spec.ts",
+    "test:emulator": "npm run build:emulator && firebase emulators:exec --config ../firebase.json --only auth,firestore --project demo-e2e \"playwright test -c playwright.emulator.config.ts\"",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build:fake && npm run test:e2e",
+    "check:full": "npm run check && npm run test:visual && npm run test:emulator"
   },
   "dependencies": {
     "firebase": "^13.2.0",
@@ -30,6 +36,7 @@
     "@vitejs/plugin-react": "^6.2.1",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "firebase-tools": "^15.35.0",
     "globals": "^17.14.0",
     "jsdom": "^30.1.3",
     "pixelmatch": "^8.0.0",
