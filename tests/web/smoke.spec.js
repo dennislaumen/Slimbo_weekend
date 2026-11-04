@@ -2,37 +2,7 @@
 // daarna laden we het tabblad Spellen en klikken we de filters aan.
 const { test, expect } = require("@playwright/test");
 
-const DATA = {
-  event: { name: "Testweekend", joinCode: "1234" },
-  members: [{ id: "u1", name: "Anna", status: "BESCHIKBAAR", wants: [] }],
-  games: [
-    { id: "g1", name: "Catan", owner: "Anna", minPlayers: 3, maxPlayers: 4, weight: "MIDDEL" },
-    { id: "g2", name: "Azul", owner: "Bram", minPlayers: 2, maxPlayers: 4, weight: "LICHT" },
-    { id: "g3", name: "Brass", owner: "", wishlist: true, minPlayers: 2, maxPlayers: 4, weight: "ZWAAR" },
-  ],
-};
-
-const FB = "https://www.gstatic.com/firebasejs/10.12.2/";
-const stubs = {
-  "firebase-app.js": `export const initializeApp = () => ({});`,
-  "firebase-auth.js": `export const getAuth = () => ({});
-    export const signInAnonymously = async () => {};
-    export const onAuthStateChanged = (a, cb) => setTimeout(() => cb({ uid: "u1" }), 0);`,
-  "firebase-firestore.js": `const D = ${JSON.stringify(DATA)};
-    const noop = async () => ({ exists: () => false, docs: [], data: () => ({}) });
-    export const getFirestore = () => ({});
-    export const collection = (db, ...p) => ({ doc: false, name: p[2] });
-    export const doc = (db, ...p) => ({ doc: true, name: p[2] });
-    export const onSnapshot = (ref, cb) => {
-      if (ref.doc && !ref.name) cb({ exists: () => true, id: "e1", data: () => D.event });
-      else if (ref.doc) cb({ exists: () => true, id: "x", data: () => ({}) });
-      else cb({ docs: (D[ref.name] || []).map(({ id, ...r }) => ({ id, data: () => r })) });
-      return () => {};
-    };
-    export const getDoc = noop, getDocs = noop, setDoc = noop, addDoc = noop, updateDoc = noop, deleteDoc = noop;
-    export const query = (r) => r, where = () => 0, limit = () => 0, arrayUnion = () => 0, arrayRemove = () => 0;
-    export const writeBatch = () => ({ set() {}, update() {}, delete() {}, commit: noop });`,
-};
+const { FB, stubs } = require("./firebase-stub");
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/config.js", (r) => r.fulfill({ contentType: "text/javascript", body: `window.FIREBASE_CONFIG={apiKey:"x",projectId:"p"};` }));
@@ -71,4 +41,51 @@ test("Iedereen in het eigenaarfilter verbergt de wenslijst", async ({ page }) =>
   expect(await titles(page)).toEqual(["Azul", "Catan"]);
   await page.getByRole("button", { name: "Filters wissen" }).click();
   expect(await titles(page)).toHaveLength(3);
+});
+
+// ---- flows: elke test kijkt welke schrijfacties naar Firestore gaan
+const writes = (page) => page.evaluate(() => window.__writes || []);
+
+test("♥ aantikken zet het spel op de eigen lijst", async ({ page }) => {
+  await page.locator('[data-want="g2"]').click();
+  expect(await writes(page)).toEqual([["update", "events/e1/members/u1", expect.objectContaining({ wants: { union: ["g2"] } })]]);
+});
+
+test("spel toevoegen: opgeslagen met eigenaar, en meteen op de eigen ♥-lijst", async ({ page }) => {
+  await page.locator("#gameNew").click();
+  await page.locator("#gName").fill("Wingspan");
+  await page.locator("#gMin").fill("1");
+  await page.locator("#gMax").fill("5");
+  await page.locator("#gSave").click();
+  await expect.poll(async () => (await writes(page)).length).toBe(2);
+  const [add, upd] = await writes(page);
+  expect(add).toEqual(["add", "games", expect.objectContaining({ name: "Wingspan", owner: "Anna", wishlist: false, minPlayers: 1, maxPlayers: 5 })]);
+  expect(upd).toEqual(["update", "events/e1/members/u1", { wants: { union: ["new1"] } }]);
+});
+
+test("een spel dat er al staat wordt niet dubbel toegevoegd", async ({ page }) => {
+  await page.locator("#gameNew").click();
+  await page.locator("#gName").fill("catan");
+  await page.locator("#gSave").click();
+  await expect(page.locator("#toast")).toContainText("staat al in de lijst");
+  expect(await writes(page)).toEqual([]);
+});
+
+test("spel op de wenslijst: eigenaar wordt leeggemaakt", async ({ page }) => {
+  await page.locator("#gameNew").click();
+  await page.locator("#gName").fill("Gloomhaven");
+  await page.locator("#gWishIn").check();
+  await expect(page.locator("#gOwnerIn")).toHaveValue("");
+  await page.locator("#gSave").click();
+  await expect.poll(async () => (await writes(page)).length).toBeGreaterThan(0);
+  expect((await writes(page))[0][2]).toEqual(expect.objectContaining({ name: "Gloomhaven", owner: "", wishlist: true }));
+});
+
+test("activiteit plannen: opgeslagen als GEPLAND met de ingevulde titel", async ({ page }) => {
+  await page.locator('[data-tab="planning"]').click();
+  await page.locator("#planNew").click();
+  await page.locator("#eTitle").fill("Pizza bij de Italiaan");
+  await page.locator("#eSave").click();
+  await expect.poll(async () => (await writes(page)).length).toBe(1);
+  expect((await writes(page))[0]).toEqual(["add", "activities", expect.objectContaining({ title: "Pizza bij de Italiaan", type: "ETEN", status: "GEPLAND", createdBy: "u1" })]);
 });
