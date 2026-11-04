@@ -1,7 +1,8 @@
 rules_version = '2';
 
-// Iedereen die is ingelogd (anoniem) mag een weekend aanmaken of er met een code
-// bij komen. Daarna kan alleen wie lid is van het weekend de gegevens lezen en wijzigen.
+// Iedereen die is ingelogd (anoniem) mag een weekend aanmaken. Meedoen kan alleen met de
+// code van het weekend: die staat in joinCodes/{CODE} (alleen op te vragen als je de code
+// kent, niet te lijsten). Daarna kan alleen wie lid is de gegevens lezen en wijzigen.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -14,18 +15,43 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/events/$(eventId)/members/$(request.auth.uid));
     }
 
+    function isCreator(eventId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/events/$(eventId)).data.createdBy == request.auth.uid;
+    }
+
+    // De code die je meestuurt bij het meedoen moet naar dit weekend wijzen
+    function validJoinCode(eventId) {
+      return request.resource.data.get('joinCode', '') is string &&
+        get(/databases/$(database)/documents/joinCodes/$(request.resource.data.get('joinCode', '-'))).data.eventId == eventId;
+    }
+
+    // Code opzoeken kan alleen als je hem kent (get), niet lijsten (list)
+    match /joinCodes/{code} {
+      allow get: if signedIn();
+      allow create: if isCreator(request.resource.data.eventId);
+      allow delete: if isCreator(resource.data.eventId);
+    }
+
     match /events/{eventId} {
-      // Lezen is nodig om een weekend op code te kunnen vinden.
-      allow read: if signedIn();
+      // Geen lijst van weekenden: leden lezen hun eigen weekend, de maker ook
+      allow get: if signedIn() && (resource == null || resource.data.createdBy == request.auth.uid || isMember(eventId));
       allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
-      allow update, delete: if isMember(eventId);
+      // Leden mogen het weekend bijwerken, maar niet de code of de maker wijzigen
+      allow update: if isCreator(eventId) ||
+        (isMember(eventId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['joinCode', 'createdBy']));
+      allow delete: if isCreator(eventId);
 
       match /members/{uid} {
         allow read: if isMember(eventId);
-        // Jezelf toevoegen (meedoen met de code)
-        allow create: if signedIn() && request.auth.uid == uid;
-        // Leden mogen elkaars status bijwerken (bv. bij starten van een spel)
-        allow update: if isMember(eventId);
+        // Jezelf toevoegen: alleen met de code van het weekend (of als maker)
+        allow create: if signedIn() && request.auth.uid == uid &&
+          (isCreator(eventId) || validJoinCode(eventId));
+        // Eigen profiel vrij; bij anderen alleen status en koppelingen (bv. bij starten van een spel)
+        allow update: if isMember(eventId) && (
+          request.auth.uid == uid || isCreator(eventId) ||
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'statusNote', 'wants', 'guestId', 'hidden', 'replacedBy', 'updatedAt']));
         allow delete: if signedIn() && request.auth.uid == uid;
       }
 
