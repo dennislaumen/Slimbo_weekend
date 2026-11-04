@@ -38,7 +38,8 @@ class GameFilterTest {
     @Test fun playersExactAndSevenPlus() {
         assertEquals(listOf("2", "3", "4", "5"), ids(filterGames(all, players = 2)))
         assertEquals(listOf("5"), ids(filterGames(all, players = 7)))
-        assertEquals(listOf("1"), ids(filterGames(listOf(catan, azul), players = 3)))
+        assertEquals(listOf("2"), ids(filterGames(listOf(catan, azul), players = 2)))
+        assertEquals(listOf("2", "1"), ids(filterGames(listOf(catan, azul), players = 3)))
     }
 
     @Test fun categoryBlankCountsAsOverig() {
