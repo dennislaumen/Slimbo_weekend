@@ -1,0 +1,38 @@
+name: Firestore rules test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - "tests/rules/**"
+      - "tools/migrate-join-codes/**"
+      - ".github/workflows/rules-test.yml"
+  pull_request:
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - "tests/rules/**"
+      - "tools/migrate-join-codes/**"
+      - ".github/workflows/rules-test.yml"
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The Firebase emulator needs Java 21+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+        working-directory: tools/migrate-join-codes
+      - run: npm ci
+        working-directory: tests/rules
+      - run: npm test
+        working-directory: tests/rules

@@ -547,10 +547,10 @@ async function login() {
   if (!name || code.length !== 6) { $("#lMsg").textContent = "Vul je naam en de code (6 tekens) in."; return; }
   $("#lMsg").textContent = "Bezig…";
   try {
-    const snap = await getDocs(query(collection(db, "events"), where("joinCode", "==", code), limit(1)));
-    if (snap.empty) { $("#lMsg").textContent = `Geen weekend gevonden met code ${code}.`; return; }
-    const id = snap.docs[0].id;
-    await setDoc(doc(db, "events", id, "members", S.uid), { name, status: "BESCHIKBAAR", updatedAt: now(), platform: "webapp" }, { merge: true });
+    const found = await getDoc(doc(db, "joinCodes", code));
+    if (!found.exists()) { $("#lMsg").textContent = `Geen weekend gevonden met code ${code}.`; return; }
+    const id = found.data().eventId;
+    await setDoc(doc(db, "events", id, "members", S.uid), { name, joinCode: code, status: "BESCHIKBAAR", updatedAt: now(), platform: "webapp" }, { merge: true });
     store.set("app_eventId", id); store.set("app_name", name); store.set("app_code", code);
     S.eventId = id; subscribe();
   } catch (e) { $("#lMsg").textContent = "Mislukt: " + e.message; }

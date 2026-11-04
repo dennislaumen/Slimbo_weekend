@@ -15,3 +15,6 @@ functions/node_modules/
 # Web-tests
 tests/web/node_modules/
 tests/web/test-results/
+tests/rules/node_modules/
+tools/migrate-join-codes/node_modules/
+firestore-debug.log

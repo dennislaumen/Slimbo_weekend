@@ -69,18 +69,17 @@ class Store:
         return {"Authorization": f"Bearer {self.token}"}
 
     def find_event(self, code):
-        q = {"structuredQuery": {"from": [{"collectionId": "events"}],
-                                 "where": {"fieldFilter": {"field": {"fieldPath": "joinCode"}, "op": "EQUAL",
-                                                           "value": {"stringValue": code}}}, "limit": 1}}
-        res = json.loads(http(f"{self.base}:runQuery", q, self._h()))
-        for r in res:
-            if "document" in r:
-                return r["document"]["name"].rsplit("/", 1)[1]
-        raise RuntimeError(f"geen weekend met code {code}")
+        try:
+            res = json.loads(http(f"{self.base}/joinCodes/{code}", None, self._h()))
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 404):
+                raise RuntimeError(f"geen weekend met code {code}")
+            raise
+        return res["fields"]["eventId"]["stringValue"]
 
-    def set_member(self, event):
+    def set_member(self, event, code):
         doc = {"fields": {"name": {"stringValue": "BGG-controle"}, "web": {"booleanValue": True},
-                          "hidden": {"booleanValue": True}, "status": {"stringValue": "BEZET"}}}
+                          "hidden": {"booleanValue": True}, "joinCode": {"stringValue": code}, "status": {"stringValue": "BEZET"}}}
         http(f"{self.base}/events/{event}/members/{self.uid}", doc, self._h(), "PATCH")
 
     def delete_member(self, event):
@@ -208,7 +207,7 @@ def main():
     manual_norm = {norm(k): v for k, v in manual.items()}
     st = Store()
     event = st.find_event(JOIN_CODE)
-    st.set_member(event)
+    st.set_member(event, JOIN_CODE)
     try:
         games = st.games(event)
     finally:

@@ -60,34 +60,35 @@ class Repository(context: Context) {
 
     suspend fun createEvent(name: String, userName: String): String {
         val ref = db.collection("events").document()
+        val code = newJoinCode()
         ref.set(
             mapOf(
                 "name" to name,
-                "joinCode" to newJoinCode(),
+                "joinCode" to code,
                 "createdBy" to me,
                 "createdAt" to now(),
             )
         ).await()
-        joinAsMember(ref.id, userName)
+        // Meedoen gaat via joinCodes/{CODE}; de maker moet het weekend eerst hebben
+        db.collection("joinCodes").document(code).set(mapOf("eventId" to ref.id)).await()
+        joinAsMember(ref.id, userName, code)
         return ref.id
     }
 
     suspend fun joinByCode(code: String, userName: String): String {
-        val snap = db.collection("events")
-            .whereEqualTo("joinCode", code.trim().uppercase())
-            .limit(1)
-            .get()
-            .await()
-        val doc = snap.documents.firstOrNull()
-            ?: throw IllegalArgumentException("Geen weekend gevonden met code ${code.uppercase()}")
-        joinAsMember(doc.id, userName)
-        return doc.id
+        val normalized = code.trim().uppercase()
+        val eventId = db.collection("joinCodes").document(normalized).get().await()
+            .getString("eventId")
+            ?: throw IllegalArgumentException("Geen weekend gevonden met code $normalized")
+        joinAsMember(eventId, userName, normalized)
+        return eventId
     }
 
-    private suspend fun joinAsMember(eventId: String, name: String) {
+    private suspend fun joinAsMember(eventId: String, name: String, code: String) {
         col(eventId, "members").document(me).set(
             mapOf(
                 "name" to name.trim(),
+                "joinCode" to code,
                 "status" to MemberStatus.BESCHIKBAAR.name,
                 "updatedAt" to now(),
             ),
