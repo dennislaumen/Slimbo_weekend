@@ -545,6 +545,7 @@ async function createFromInit(file, btn) {
     const code = existing.exists() ? existing.data().joinCode : newCode();
     if (!existing.exists()) {
       await setDoc(evRef, { ...seed.event, joinCode: code, createdBy: S.uid, createdAt: now(), initFile: file, initVersion: seed.version || 1, initDone: false });
+      await setDoc(doc(db, "joinCodes", code), { eventId: seed.id });
     }
     await setDoc(doc(db, "events", seed.id, "members", S.uid), { name: name + " (web)", web: true, status: "BEZET", updatedAt: now() }, { merge: true });
     const ops = [];
@@ -570,10 +571,10 @@ async function login() {
   if (code.length !== 6 || !name) { $("#lMsg").textContent = "Vul de code (6 tekens) en je naam in."; return; }
   $("#lMsg").textContent = "Bezig…";
   try {
-    const snap = await getDocs(query(collection(db, "events"), where("joinCode", "==", code), limit(1)));
-    if (snap.empty) { $("#lMsg").textContent = "Geen weekend met deze code."; return; }
-    const id = snap.docs[0].id;
-    await setDoc(doc(db, "events", id, "members", S.uid), { name: name + " (web)", web: true, status: "BEZET", updatedAt: now() }, { merge: true });
+    const found = await getDoc(doc(db, "joinCodes", code));
+    if (!found.exists()) { $("#lMsg").textContent = "Geen weekend met deze code."; return; }
+    const id = found.data().eventId;
+    await setDoc(doc(db, "events", id, "members", S.uid), { name: name + " (web)", joinCode: code, web: true, status: "BEZET", updatedAt: now() }, { merge: true });
     store.set("eventId", id); store.set("name", name);
     S.eventId = id; subscribe();
   } catch (e) { $("#lMsg").textContent = "Mislukt: " + e.message; }
